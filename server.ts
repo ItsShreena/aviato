@@ -43,9 +43,9 @@ import { sendBookingConfirmationEmail } from './server/services/email';
 import { initRealtimeServer, confirmSeatBooked, broadcastSeatUpdate } from './server/services/realtimeSeats';
 import { calculateFlightPrice } from './server/utils/pricing';
 import { getFlightProvider } from './server/services/flights';
-
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
+
 
 // 1. Core Request & Debugging Middleware
 app.use(express.json());
