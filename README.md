@@ -1576,14 +1576,6 @@ Admin Dashboard
 Boarding Pass
 ```
 
-Example:
-
-```markdown
-![AVIATO Landing Page](./screenshots/home.png)
-```
-
----
-
 # Documentation
 
 Additional documentation can include:
@@ -1594,14 +1586,6 @@ Additional documentation can include:
 * Setup instructions
 * Environment configuration
 * Deployment documentation
-
----
-
-# Author
-
-**Shreena Mani**
-
-BTech Student | Full-Stack Developer | UI/UX Enthusiast
 
 ---
 
