@@ -119,32 +119,7 @@ export default function DiagnosticsConsole() {
 
   return (
     <>
-      {/* Floating Toggle Button */}
-      <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2">
-        {errors.length > 0 && !isOpen && (
-          <span className="animate-bounce flex h-3 w-3 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
-          </span>
-        )}
-        <button
-          id="err-console-toggle-btn"
-          onClick={toggleOpen}
-          className={`flex items-center gap-2 px-4 py-3 rounded-full font-mono text-sm shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 ${
-            errors.length > 0
-              ? 'bg-rose-950/90 hover:bg-rose-900 text-rose-200 border border-rose-500/30'
-              : 'bg-zinc-950/90 hover:bg-zinc-900 text-zinc-300 border border-zinc-800'
-          }`}
-        >
-          <Bug className={`w-4 h-4 ${errors.length > 0 && hasNew ? 'animate-pulse text-rose-400' : ''}`} />
-          <span>API Logs</span>
-          {errors.length > 0 && (
-            <span className="bg-rose-500 text-white font-bold px-2 py-0.5 rounded-full text-xs">
-              {errors.length}
-            </span>
-          )}
-        </button>
-      </div>
+
 
       {/* Slide-Over Drawer */}
       <div
