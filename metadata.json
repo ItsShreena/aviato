@@ -1,0 +1,6 @@
+{
+  "name": "AVIATO",
+  "description": "Aviato is a premium flight reservation and interactive route optimization platform. Fly Smarter. Reach Faster.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

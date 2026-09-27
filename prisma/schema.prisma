@@ -1,0 +1,103 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  password       String
+  name           String
+  passportNumber String?
+  role           String    @default("CUSTOMER") // "CUSTOMER", "ADMIN"
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  bookings       Booking[]
+}
+
+model Aircraft {
+  id            String   @id @default(uuid())
+  name          String
+  model         String
+  capacity      Int
+  range         Int      // in km
+  speed         Int      // in km/h
+  amenities     String   // Comma-separated or JSON string
+  interiorImage String
+  status        String   // "ACTIVE", "MAINTENANCE", "STANDBY"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  flights       Flight[]
+}
+
+model Airport {
+  id               String   @id @default(uuid())
+  code             String   @unique
+  name             String
+  city             String
+  country          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  departureFlights Flight[] @relation("DepartureAirport")
+  arrivalFlights   Flight[] @relation("ArrivalAirport")
+}
+
+model Flight {
+  id                 String    @id @default(uuid())
+  flightNo           String    @unique
+  airline            String
+  airlineCode        String
+  departureCity      String
+  arrivalCity        String
+  departureAirportId String?
+  departureAirport   Airport?  @relation("DepartureAirport", fields: [departureAirportId], references: [id], onDelete: SetNull)
+  arrivalAirportId   String?
+  arrivalAirport     Airport?  @relation("ArrivalAirport", fields: [arrivalAirportId], references: [id], onDelete: SetNull)
+  departureTime      String
+  arrivalTime        String
+  price              Float
+  date               String
+  duration           String
+  cabinClass         String    // "First", "Business", "Economy"
+  stops              Int       @default(0)
+  aircraftId         String?
+  aircraft           Aircraft? @relation(fields: [aircraftId], references: [id], onDelete: SetNull)
+  availableSeats     String    // Comma-separated or JSON list of seat names
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  bookings           Booking[]
+
+  @@index([aircraftId])
+  @@index([departureAirportId])
+  @@index([arrivalAirportId])
+  @@index([date])
+}
+
+model Booking {
+  id             String   @id @default(uuid())
+  bookingNo      String   @unique
+  flightId       String
+  flight         Flight   @relation(fields: [flightId], references: [id], onDelete: Cascade)
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  passengerName  String
+  passengerEmail String
+  passportNumber String
+  seatId         String
+  seatClass      String
+  status         String   @default("CONFIRMED") // "CONFIRMED", "CANCELLED"
+  totalPrice     Float
+  razorpayOrderId String?
+  razorpayPaymentId String?
+  razorpaySignature String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([flightId])
+  @@index([userId])
+  @@index([createdAt])
+}
