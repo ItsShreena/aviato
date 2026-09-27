@@ -2,56 +2,52 @@
 
 ### Fly Smarter. Reach Faster.
 
-AVIATO is a full-stack flight booking and reservation platform built as a portfolio and engineering project. It demonstrates a modern flight-search and reservation workflow across a React/TypeScript frontend, Express/Node.js backend, Prisma/PostgreSQL persistence, external flight-provider integration, real-time seat synchronization, authentication and role-based authorization, booking management, transactional email, PDF boarding-pass generation, and conditional Razorpay payment integration.
+AVIATO is a full-stack flight booking and reservation platform built as a portfolio and engineering project. It demonstrates a modern flight-search and reservation workflow across a React/TypeScript frontend, Express/Node.js backend, Prisma/PostgreSQL persistence, external flight-provider integration, real-time seat synchronization, authentication and role-based authorization, booking management, transactional email, and PDF boarding-pass generation.
 
-> **Important:** AVIATO is an educational/portfolio reservation simulator. It is **not an airline ticketing system**, does not issue commercially valid airline tickets, and should not be used for real-world travel transactions. External flight data is handled through the configured LetsFG environment or the application's demo fallback provider.
+> **Important:** AVIATO is a portfolio/educational reservation simulator. It is not a real airline ticketing system and does not process real-world flight reservations.
 
 ---
 
-## 📋 Table of Contents
+## 📌 Table of Contents
 
 * [About AVIATO](#about-aviato)
 * [Project Goal](#project-goal)
 * [Problem Statement](#problem-statement)
 * [Solution](#solution)
 * [Key Features](#key-features)
-* [Complete User Journey](#complete-user-journey)
+* [User Journey](#user-journey)
 * [System Architecture](#system-architecture)
-* [Application Architecture](#application-architecture)
 * [Frontend Architecture](#frontend-architecture)
 * [Backend Architecture](#backend-architecture)
-* [Flight Search System](#flight-search-system)
-* [LetsFG Integration](#letsfg-integration)
+* [Flight Search](#flight-search)
+* [External Flight Provider Integration](#external-flight-provider-integration)
 * [Flight Data Normalization](#flight-data-normalization)
-* [Real-Time Seat Availability](#real-time-seat-availability)
+* [Real-Time Seat Synchronization](#real-time-seat-synchronization)
 * [Seat Management](#seat-management)
 * [Authentication](#authentication)
-* [Authorization & Roles](#authorization--roles)
+* [Authorization](#authorization)
 * [Booking System](#booking-system)
-* [PNR / Booking Number](#pnr--booking-number)
-* [Email System](#email-system)
-* [Digital Boarding Pass](#digital-boarding-pass)
-* [Customer Dashboard](#customer-dashboard)
-* [Admin System](#admin-system)
-* [Database Architecture](#database-architecture)
-* [Database Models](#database-models)
-* [Database Relationships](#database-relationships)
-* [API Architecture](#api-architecture)
-* [WebSocket Architecture](#websocket-architecture)
+* [PNR Generation](#pnr-generation)
+* [Email Confirmation](#email-confirmation)
+* [Boarding Pass Generation](#boarding-pass-generation)
+* [User Dashboard](#user-dashboard)
+* [Admin Dashboard](#admin-dashboard)
+* [Database Design](#database-design)
+* [REST API](#rest-api)
+* [WebSocket API](#websocket-api)
 * [Failure Handling](#failure-handling)
 * [Security](#security)
-* [Engineering Challenges Solved](#engineering-challenges-solved)
+* [Engineering Challenges](#engineering-challenges)
 * [Important Technical Decisions](#important-technical-decisions)
-* [Tech Stack](#tech-stack)
+* [Technology Stack](#technology-stack)
 * [Project Structure](#project-structure)
 * [Environment Variables](#environment-variables)
-* [Local Setup](#local-setup)
+* [Installation & Setup](#installation--setup)
 * [Available Scripts](#available-scripts)
-* [Testing / Verification](#testing--verification)
+* [Testing](#testing)
 * [Current Project Status](#current-project-status)
-* [Payment Architecture](#payment-architecture)
 * [Future Scope](#future-scope)
-* [Scalability](#scalability)
+* [Scalability Considerations](#scalability-considerations)
 * [Engineering Concepts Demonstrated](#engineering-concepts-demonstrated)
 * [Screenshots](#screenshots)
 * [Documentation](#documentation)
@@ -64,155 +60,139 @@ AVIATO is a full-stack flight booking and reservation platform built as a portfo
 
 # About AVIATO
 
-AVIATO models the engineering challenges behind a modern flight-reservation workflow rather than functioning as a simple CRUD application.
+AVIATO is designed to simulate a complete flight-search and reservation experience while demonstrating practical full-stack engineering concepts.
 
-The application combines:
+The project focuses on building a realistic application rather than a simple CRUD interface.
 
-* Flight search and filtering
+The platform combines:
+
+* Flight search
 * External flight-provider integration
-* Demo flight fallback
-* Flight-offer normalization
-* Authentication
-* JWT-based sessions
-* Password hashing
-* Customer and administrator roles
-* Seat-map generation
-* Real-time seat locking
-* WebSocket synchronization
-* Server-side seat validation
-* Booking persistence
-* PNR-style booking references
-* Customer booking history
-* Booking cancellation and rebooking
-* Transactional confirmation email
+* Flight data normalization
+* Seat selection
+* Real-time seat synchronization
+* User authentication
+* Role-based authorization
+* Booking management
+* PNR generation
+* Email confirmation
 * PDF boarding-pass generation
-* Administrative dashboards
-* Aircraft management
-* PostgreSQL persistence through Prisma
-* In-memory resilience when the database is unavailable
-* Conditional Razorpay payment-order creation and signature verification
+* Customer dashboard
+* Admin dashboard
+* PostgreSQL persistence
+* WebSocket communication
+* API failure handling
+* Authentication security
 
-The project therefore demonstrates interaction between multiple application layers instead of treating the frontend, backend, database, and integrations as isolated components.
+The architecture is intentionally modular so that individual services can be replaced or extended without rewriting the entire application.
 
 ---
 
 # Project Goal
 
-The primary engineering objective of AVIATO is to demonstrate how a reservation workflow can be designed when several independent systems have to cooperate.
+The primary goal of AVIATO is to demonstrate how a modern full-stack reservation platform can be designed and implemented.
 
-The project focuses particularly on problems such as:
+The project focuses on:
 
-1. Integrating an external flight provider without exposing API credentials to the browser.
-2. Converting provider-specific flight responses into a stable internal format.
-3. Keeping seat availability synchronized between multiple clients.
-4. Preventing two users from selecting the same seat.
-5. Persisting bookings while retaining an in-memory fallback mode.
-6. Protecting authenticated resources with JWTs.
-7. Separating customer functionality from administrative functionality.
-8. Generating reservation documents and confirmation emails.
-9. Handling external API, database, payment, and email failures without unnecessarily crashing the application.
-10. Keeping the frontend independent from the provider-specific response format.
+1. Building a responsive React frontend.
+2. Creating a REST API using Node.js and Express.
+3. Persisting application data using PostgreSQL and Prisma.
+4. Integrating an external flight-data provider.
+5. Normalizing inconsistent external API responses.
+6. Implementing authentication using JWT.
+7. Implementing role-based authorization.
+8. Building real-time seat synchronization using WebSockets.
+9. Handling external API, database, email, and application failures gracefully.
+10. Generating booking confirmations and boarding passes.
+11. Designing a scalable application architecture.
+12. Demonstrating practical software engineering decisions.
 
 ---
 
 # Problem Statement
 
-A flight reservation workflow contains several stateful operations that cannot safely be treated as independent frontend actions.
+Flight-booking applications involve more than simply displaying a list of flights.
 
-For example:
+A realistic reservation workflow needs to handle:
 
-```text
-Search Flight
-     ↓
-Select Offer
-     ↓
-Select Seat
-     ↓
-Hold Seat
-     ↓
-Enter Passenger Details
-     ↓
-Validate Availability
-     ↓
-Create Booking
-     ↓
-Payment / Confirmation
-     ↓
-Generate Reservation Information
-     ↓
-Email Confirmation
-     ↓
-Boarding Pass
-```
+### Flight Search
 
-Several problems appear in this workflow:
+Users should be able to search for flights using:
 
-### External provider dependency
+* Origin
+* Destination
+* Departure date
+* Passenger count
 
-Flight information may come from an external API whose response format is different from the application's internal model.
+### External Data
 
-### Concurrent seat selection
+Flight information may come from external providers and can contain inconsistent structures.
 
-Two clients may attempt to select the same seat at approximately the same time.
+The application therefore needs to normalize provider responses before displaying them.
 
-### Database availability
+### Seat Selection
 
-A reservation application should not assume that its database is always reachable.
+Users need to:
 
-### Authentication state
+* View available seats
+* Select seats
+* See unavailable seats
+* Prevent conflicting reservations
 
-Users need persistent authenticated sessions while protected resources must remain inaccessible to unauthenticated users.
+### Booking
 
-### Authorization
+A booking system needs to maintain:
 
-Administrative operations such as user management and aircraft management should not be available to normal customers.
+* Passenger information
+* Flight information
+* Seat information
+* Booking status
+* PNR
+* User association
 
-### Payment state
+### Authentication
 
-A booking can involve an external payment gateway and therefore requires handling pending orders, payment verification, and failure states.
+Users need secure account management and protected booking data.
 
-### Communication
+### Real-Time Synchronization
 
-Booking confirmation needs to be communicated to the passenger independently of the browser UI.
+When multiple users interact with the same flight, seat availability should remain synchronized.
 
-AVIATO addresses these problems through explicit backend services, provider abstraction, server-side validation, real-time seat state, and fallback mechanisms.
+### Reliability
+
+External services may fail.
+
+The application therefore needs fallback behavior and error handling instead of simply crashing.
 
 ---
 
 # Solution
 
-AVIATO uses a layered architecture:
+AVIATO solves these problems through a layered full-stack architecture.
 
-```mermaid
-flowchart TD
-    UI["React + TypeScript + Vite"]
-    API["Express / Node.js API"]
-    AUTH["JWT + bcryptjs"]
-    FLIGHT["Flight Provider Layer"]
-    LETSFG["LetsFG Sandbox / Production Endpoint"]
-    DEMO["Demo Flight Provider"]
-    DB["Prisma"]
-    PG["PostgreSQL"]
-    WS["WebSocket Seat Service"]
-    EMAIL["Resend"]
-    PDF["PDFKit"]
-    PAYMENT["Razorpay Integration"]
-
-    UI --> API
-    UI <--> WS
-    API --> AUTH
-    API --> FLIGHT
-    FLIGHT --> LETSFG
-    FLIGHT --> DEMO
-    API --> DB
-    DB --> PG
-    API --> EMAIL
-    API --> PDF
-    API --> PAYMENT
-    WS --> DB
+```text
+React Frontend
+      │
+      ▼
+Express REST API
+      │
+      ├── Authentication
+      ├── Flight Search
+      ├── Seat Management
+      ├── Booking Management
+      ├── Email Service
+      └── Boarding Pass Generator
+      │
+      ▼
+Prisma ORM
+      │
+      ▼
+PostgreSQL Database
 ```
 
-The external flight provider is accessed server-side. The browser communicates with AVIATO's backend rather than receiving the LetsFG API key.
+External flight information is retrieved through a provider integration and normalized before being consumed by the frontend.
+
+Real-time seat updates are handled independently through WebSockets.
 
 ---
 
@@ -220,288 +200,248 @@ The external flight provider is accessed server-side. The browser communicates w
 
 ## ✈️ Flight Search
 
-* Search by origin and destination.
-* Date validation.
-* Passenger-count validation.
-* Cabin-class support.
-* City-to-IATA resolution.
-* LetsFG integration.
-* Demo flight fallback.
-* Flight-offer normalization.
-* Provider metadata preservation.
-* Cached provider offer identifiers.
-* Flight-offer expiry handling.
+Users can search flights using:
 
-## 💺 Real-Time Seat Selection
+* Origin
+* Destination
+* Departure date
+* Passenger count
 
-* Full cabin seat generation.
-* Seat classes.
-* Available/booked/locked/selected states.
-* Five-minute seat holds.
-* Session-specific locks.
-* WebSocket broadcasting.
-* REST seat-state fallback.
-* Server-side availability validation.
-
-## 🔐 Authentication
-
-* Signup.
-* Login.
-* bcrypt password hashing.
-* JWT authentication.
-* Persistent browser session through local storage.
-* `/api/auth/me` session verification.
-* Profile updates.
-
-## 👥 Authorization
-
-Two roles are represented:
-
-```text
-CUSTOMER
-ADMIN
-```
-
-Administrative endpoints use JWT authentication together with role checking.
-
-## 🧾 Booking
-
-* Passenger information.
-* Seat selection.
-* Server-side seat validation.
-* Authoritative price calculation.
-* Booking-number generation.
-* Database persistence.
-* In-memory fallback.
-* Booking history.
-* Cancellation.
-* Rebooking.
-
-## 💳 Payment Integration
-
-Razorpay support exists conditionally.
-
-When valid Razorpay credentials are available and the gateway probe succeeds, AVIATO can:
-
-1. Create a Razorpay order.
-2. Return the order information to the frontend.
-3. Open Razorpay Checkout.
-4. Receive the payment response.
-5. Verify the Razorpay signature server-side.
-6. Mark the booking as confirmed.
-
-When the gateway is unavailable, the application's booking flow can fall back to its direct/demo confirmation behavior.
-
-This does **not** constitute production payment processing.
-
-## 📧 Email
-
-AVIATO integrates directly with the Resend email API for booking-confirmation emails.
-
-Email delivery failure does not automatically invalidate an otherwise created booking.
-
-## 🎫 Boarding Pass
-
-The backend generates a PDF boarding-pass-style document using PDFKit.
-
-The generated document explicitly identifies itself as a demo/simulation boarding pass.
-
-## 🛠️ Admin Portal
-
-Administrators can access:
-
-* Dashboard statistics
-* User management
-* User role editing
-* User deletion
-* Aircraft management
-* Aircraft creation
-* Aircraft updates
-* Aircraft decommissioning
+The system supports external flight-provider data as well as fallback/demo data.
 
 ---
 
-# Complete User Journey
+## 🔄 Flight Data Normalization
 
-The implemented application flow can be represented as:
+External flight-provider responses are converted into a consistent internal format.
 
-```mermaid
-flowchart LR
-    A["Landing Page"] --> B["Flight Search"]
-    B --> C["Flight Results"]
-    C --> D["Flight Details"]
-    D --> E["Passenger Details"]
-    E --> F["Seat Selection"]
-    F --> G["Booking Review"]
-    G --> H["Booking API"]
-    H --> I{"Razorpay Available?"}
-    I -->|Yes| J["Razorpay Checkout"]
-    J --> K["Payment Signature Verification"]
-    I -->|No| L["Direct / Demo Confirmation"]
-    K --> M["Confirmed Booking"]
-    L --> M
-    M --> N["Email Confirmation"]
-    M --> O["Confirmation View"]
-    O --> P["My Bookings / Travel Hub"]
-    P --> Q["PDF Boarding Pass"]
-```
+This prevents frontend components from depending directly on provider-specific structures.
 
-### 1. Search
+---
 
-The frontend submits search criteria to the backend.
+## 💺 Interactive Seat Selection
 
-AVIATO accepts `/api/search` as the frontend-compatible search endpoint and also exposes `/api/flights/search`.
+Users can:
 
-### 2. Flight Results
+* View the aircraft seat map
+* Select available seats
+* See occupied seats
+* Remove selected seats
+* Continue with the booking
 
-The provider layer returns normalized flight objects.
+---
 
-Depending on configuration, the result can originate from:
+## ⚡ Real-Time Seat Synchronization
 
-* LetsFG
-* Demo provider
+WebSockets are used to synchronize seat availability between connected clients.
 
-### 3. Flight Details
+When a seat changes state, connected clients can receive the update without refreshing the page.
 
-The selected flight is carried into the booking workflow.
+---
 
-### 4. Passenger Details
+## 🔐 Authentication
 
-The user provides:
+The platform supports:
 
-* Passenger name
-* Passenger email
-* Passport/ID information
+* User registration
+* Login
+* Password hashing
+* JWT authentication
+* Protected routes
+* Session persistence
 
-### 5. Seat Selection
+Passwords are hashed using `bcryptjs`.
 
-The user selects a seat from the generated cabin layout.
+---
 
-AVIATO uses both REST and WebSocket mechanisms for live seat state.
+## 👥 Role-Based Authorization
 
-### 6. Booking
+The application supports different user roles.
 
-The backend validates:
+### Customer
 
-* Flight existence
-* Seat format
-* Seat availability
-* Existing bookings
-* Authoritative pricing
+Customers can:
 
-### 7. Booking Number
+* Search flights
+* Select seats
+* Create bookings
+* View bookings
+* Download boarding passes
 
-A booking reference is generated in the form:
+### Admin
+
+Admins can access administrative functionality such as:
+
+* Viewing users
+* Viewing bookings
+* Managing application data
+
+---
+
+## 🎫 Booking Management
+
+Users can create bookings containing:
+
+* Flight information
+* Passenger information
+* Selected seats
+* Booking status
+* PNR
+* User information
+
+Bookings are persisted using PostgreSQL through Prisma.
+
+---
+
+## 🔢 PNR Generation
+
+Each booking receives a unique PNR identifier.
+
+The PNR can be used to identify a reservation throughout the application.
+
+---
+
+## 📧 Email Confirmation
+
+After a successful booking, the application can send confirmation emails using Resend.
+
+Emails can contain:
+
+* Booking information
+* Flight details
+* Passenger information
+* PNR
+* Seat information
+
+---
+
+## 📄 PDF Boarding Pass
+
+AVIATO generates PDF boarding passes using PDFKit.
+
+The boarding pass contains relevant reservation information such as:
+
+* Passenger
+* Flight
+* Route
+* Date
+* Seat
+* PNR
+
+---
+
+## 👤 User Dashboard
+
+Authenticated users can view their:
+
+* Profile
+* Bookings
+* Booking details
+* PNRs
+* Boarding passes
+
+---
+
+## 🛠️ Admin Dashboard
+
+Administrators have access to management functionality for application data.
+
+This provides a separate interface from the normal customer booking workflow.
+
+---
+
+# User Journey
+
+The typical customer workflow is:
 
 ```text
-AV-123456
+Landing Page
+     │
+     ▼
+Search Flights
+     │
+     ▼
+View Results
+     │
+     ▼
+Select Flight
+     │
+     ▼
+Select Seats
+     │
+     ▼
+Enter Passenger Details
+     │
+     ▼
+Review Booking
+     │
+     ▼
+Confirm Booking
+     │
+     ▼
+Generate PNR
+     │
+     ├──────────────► Send Confirmation Email
+     │
+     └──────────────► Generate Boarding Pass
+     │
+     ▼
+Booking Confirmation
 ```
-
-### 8. Payment
-
-If the Razorpay gateway is configured and verified, the frontend receives a Razorpay order and launches checkout.
-
-Otherwise the application can proceed through its non-payment/demo confirmation path.
-
-### 9. Confirmation
-
-The reservation is displayed in the confirmation view and added to the user's booking state.
-
-### 10. Email
-
-For confirmed reservations, AVIATO attempts to send a booking-confirmation email through Resend.
-
-### 11. Boarding Pass
-
-The user can request a server-generated PDF boarding pass from the booking interface.
-
-### 12. Dashboard
-
-The Travel Hub provides booking history, upcoming trips, profile access, and reservation management.
 
 ---
 
 # System Architecture
 
-```mermaid
-flowchart TB
-    subgraph Client["Browser"]
-        React["React Application"]
-        LocalStorage["localStorage\nJWT + User Session"]
-        WSClient["WebSocket Client"]
-    end
+```text
+                        ┌──────────────────────┐
+                        │      React UI        │
+                        │  React + TypeScript  │
+                        └──────────┬───────────┘
+                                   │
+                          HTTP / REST API
+                                   │
+                                   ▼
+                        ┌──────────────────────┐
+                        │   Express Backend    │
+                        │      Node.js         │
+                        └──────────┬───────────┘
+                                   │
+              ┌────────────────────┼────────────────────┐
+              │                    │                    │
+              ▼                    ▼                    ▼
+       Authentication       Flight Service       Booking Service
+              │                    │                    │
+              │                    ▼                    │
+              │             External Provider           │
+              │                    │                    │
+              │                    ▼                    │
+              │             Data Normalization          │
+              │                                         │
+              └──────────────────┬──────────────────────┘
+                                 │
+                                 ▼
+                        ┌──────────────────────┐
+                        │       Prisma         │
+                        │         ORM          │
+                        └──────────┬───────────┘
+                                   │
+                                   ▼
+                        ┌──────────────────────┐
+                        │     PostgreSQL       │
+                        └──────────────────────┘
 
-    subgraph Server["AVIATO Server"]
-        Express["Express Application"]
-        Auth["JWT Authentication"]
-        Routes["API Routes"]
-        Booking["Booking Logic"]
-        FlightEngine["Flight Provider Engine"]
-        SeatService["Realtime Seat Service"]
-        EmailService["Email Service"]
-        PDFService["Boarding Pass Generator"]
-        Fallback["In-Memory Fallback Store"]
-    end
-
-    subgraph Data["Persistence"]
-        Prisma["Prisma ORM"]
-        PostgreSQL["PostgreSQL"]
-    end
-
-    subgraph External["External Services"]
-        LetsFG["LetsFG"]
-        Resend["Resend"]
-        Razorpay["Razorpay"]
-    end
-
-    React --> Express
-    React --> LocalStorage
-    WSClient <--> SeatService
-
-    Express --> Routes
-    Routes --> Auth
-    Routes --> Booking
-    Routes --> FlightEngine
-    Routes --> SeatService
-    Routes --> EmailService
-    Routes --> PDFService
-
-    Booking --> Prisma
-    SeatService --> Prisma
-    Prisma --> PostgreSQL
-
-    Booking --> Fallback
-    FlightEngine --> Fallback
-
-    FlightEngine --> LetsFG
-    EmailService --> Resend
-    Booking --> Razorpay
+                     WebSocket Connection
+                              │
+                              ▼
+                     Real-Time Seat Updates
 ```
-
----
-
-# Application Architecture
-
-AVIATO is organized into several logical layers.
-
-| Layer              | Responsibility                                                  |
-| ------------------ | --------------------------------------------------------------- |
-| React UI           | User interaction and presentation                               |
-| Frontend utilities | API interception, currency formatting, pricing, ticket fallback |
-| Express            | HTTP API and server orchestration                               |
-| Routes             | Authentication, flights, bookings, seats, aircraft, admin       |
-| Services           | Flight providers, email, real-time seats                        |
-| Middleware         | Authentication and booking logging                              |
-| Prisma             | Database access                                                 |
-| PostgreSQL         | Persistent relational storage                                   |
-| Fallback store     | In-memory resilience and demo data                              |
-| External APIs      | LetsFG, Resend, Razorpay                                        |
 
 ---
 
 # Frontend Architecture
 
-The frontend is implemented with:
+The frontend is built using:
 
 * React
 * TypeScript
@@ -511,1569 +451,647 @@ The frontend is implemented with:
 * Motion
 * Recharts
 
-The application is primarily orchestrated through `src/App.tsx`.
+The UI is organized into reusable components and pages.
 
-## Major Pages
+Frontend responsibilities include:
 
-```text
-src/pages/
-├── AdminDashboardPage.tsx
-├── FlightDetailsPage.tsx
-├── LandingPage.tsx
-├── LoginPage.tsx
-├── MyProfilePage.tsx
-├── SearchResultsPage.tsx
-├── SignupPage.tsx
-└── TravelHubPage.tsx
-```
-
-## Major Components
-
-```text
-src/components/
-├── AuthForm.tsx
-├── BookingCard.tsx
-├── BookingConfirmationView.tsx
-├── BookingFlightSummary.tsx
-├── BookingProgressBar.tsx
-├── BookingReviewStep.tsx
-├── DashboardCard.tsx
-├── DiagnosticsConsole.tsx
-├── FlightCard.tsx
-├── Footer.tsx
-├── Navbar.tsx
-├── PassengerDetailsStep.tsx
-├── SearchForm.tsx
-├── SeatSelector.tsx
-└── Sidebar.tsx
-```
-
-## Booking UI State
-
-The frontend maintains explicit states for:
-
-* Selected flight
-* Available seats
-* Selected seat
-* Passenger information
-* Promo code
-* Checkout step
-* Payment processing
-* Recent booking
-* Email confirmation status
-* Current application view
-
-The application uses a view-based navigation model rather than a separate client-side routing library.
+* Rendering flight search
+* Displaying flight results
+* Seat-map interaction
+* Booking forms
+* Authentication screens
+* Dashboards
+* Booking confirmation
+* Boarding-pass access
+* Responsive layouts
 
 ---
 
 # Backend Architecture
 
-The backend is a unified Node.js process built around Express.
+The backend uses:
 
-The same server handles:
+* Node.js
+* Express
+* Prisma
+* PostgreSQL
+* WebSockets
+* JWT
+* bcryptjs
+* Resend
+* PDFKit
 
-* API requests
-* Vite development middleware
-* Production static files
-* WebSocket upgrades
-* Database initialization
+The backend is responsible for:
 
-The server listens on:
-
-```text
-0.0.0.0:3000
-```
-
-## Backend modules
-
-```text
-server/
-├── routes/
-├── services/
-├── middleware/
-├── utils/
-├── db.ts
-├── fallbackStore.ts
-└── seed.ts
-```
-
-### Routes
-
-* `auth.ts`
-* `flights.ts`
-* `seats.ts`
-* `bookings.ts`
-* `aircraft.ts`
-* `admin.ts`
-
-### Services
-
-* Flight-provider abstraction
-* LetsFG provider
-* Demo provider
+* Authentication
+* Authorization
+* Flight search
 * Flight normalization
-* Real-time seat service
-* Email service
-
-### Utilities
-
-* Seat normalization
-* Pricing
-* Currency handling
-
----
-
-# Flight Search System
-
-Flight search is implemented through a provider abstraction.
-
-```text
-IFlightProvider
-       │
-       ├── RealFlightProvider
-       │        │
-       │        └── LetsFG API
-       │
-       └── DemoFlightProvider
-```
-
-The active provider is selected through:
-
-```text
-FLIGHT_PROVIDER_MODE
-```
-
-or:
-
-```text
-LETSFG_MODE
-```
-
-The default mode is:
-
-```text
-letsfg_sandbox
-```
-
-Explicit demo mode is also supported.
-
-## Search Validation
-
-The backend validates:
-
-* Origin presence
-* Destination presence
-* Origin and destination cannot be identical
-* Passenger count between 1 and 9
-* Date format
-* Date cannot be in the past
-
-## City-to-IATA Resolution
-
-AVIATO contains mappings for several major locations, including:
-
-```text
-Delhi       → DEL
-Mumbai      → BOM
-Bangalore   → BLR
-Goa         → GOI
-Hyderabad   → HYD
-Chennai     → MAA
-Kolkata     → CCU
-Dubai       → DXB
-London      → LHR
-New York    → JFK
-Singapore   → SIN
-```
-
-Unknown inputs are also handled through airport/fallback resolution logic.
+* Seat management
+* Booking creation
+* Booking retrieval
+* PNR generation
+* Email delivery
+* Boarding-pass generation
+* Database operations
+* WebSocket communication
 
 ---
 
-# LetsFG Integration
+# Flight Search
 
-AVIATO contains a server-side LetsFG flight-provider integration.
-
-The API key is read from:
+Flight search accepts parameters such as:
 
 ```text
-LETSFG_API_KEY
+Origin
+Destination
+Departure Date
+Passengers
 ```
 
-The key is not intentionally exposed to the frontend.
-
-## Provider Modes
-
-The provider supports:
+Example:
 
 ```text
-demo
-letsfg_sandbox
-letsfg_production
+DEL → BOM
+Departure: 2026-10-10
+Passengers: 2
 ```
 
-The default mode is:
+The backend communicates with the external flight provider and converts the response into the application's internal flight representation.
+
+---
+
+# External Flight Provider Integration
+
+AVIATO integrates with the LetsFG flight-data provider.
+
+The provider is responsible for supplying flight information.
+
+The backend acts as an abstraction layer between the provider and the frontend.
 
 ```text
-letsfg_sandbox
+Frontend
+   │
+   ▼
+AVIATO API
+   │
+   ▼
+Flight Provider
+   │
+   ▼
+Raw Flight Data
+   │
+   ▼
+Normalizer
+   │
+   ▼
+AVIATO Flight Model
+   │
+   ▼
+Frontend
 ```
 
-### Sandbox endpoint
-
-The implementation uses the LetsFG sandbox flight-search endpoint by default.
-
-Production mode switches the provider base path to the production API.
-
-## Request Flow
-
-```mermaid
-sequenceDiagram
-    participant UI as React
-    participant API as AVIATO API
-    participant Provider as RealFlightProvider
-    participant LetsFG as LetsFG
-
-    UI->>API: POST /api/search
-    API->>Provider: searchFlights(criteria)
-    Provider->>Provider: Resolve city → IATA
-    Provider->>LetsFG: POST /flights/search
-    LetsFG-->>Provider: Flight offers
-    Provider->>Provider: Normalize offers
-    Provider->>Provider: Cache provider IDs
-    Provider-->>API: Normalized flights
-    API-->>UI: Flight results
-```
-
-## Authentication
-
-LetsFG requests use:
-
-```text
-X-API-Key: <server-side key>
-```
-
-The credential is obtained from the server environment.
-
-## Timeout Handling
-
-The provider uses a 12-second abort timeout for the flight search request.
-
-## Error Handling
-
-The provider explicitly handles:
-
-| Condition                       | Behavior            |
-| ------------------------------- | ------------------- |
-| Missing API key                 | Demo fallback       |
-| Demo mode                       | Demo provider       |
-| HTTP 401/403                    | Demo fallback       |
-| HTTP 402                        | Demo fallback       |
-| HTTP 429                        | Demo fallback       |
-| Other non-success response      | Demo fallback       |
-| Malformed JSON                  | Demo fallback       |
-| Network failure                 | Demo fallback       |
-| Request timeout                 | Demo fallback       |
-| Valid response with zero offers | Return zero results |
-
-Importantly, a genuine zero-result LetsFG response does **not** automatically generate fake flights.
+This approach prevents provider-specific implementation details from leaking into the UI.
 
 ---
 
 # Flight Data Normalization
 
-External flight data is converted into AVIATO's internal flight representation through the flight adapter.
+External APIs can return data in structures that differ from the application's requirements.
 
-The adapter handles concepts including:
+AVIATO therefore uses a normalization layer.
 
-* Airport resolution
-* Flight time formatting
-* Flight date extraction
-* Duration calculation
-* ISO duration parsing
-* Currency conversion
-* Provider offer normalization
+For example, an external provider might return:
 
-LetsFG-specific data is normalized through:
-
-```text
-normalizeLetsFGFlightOffer()
+```json
+{
+  "departure": {
+    "iataCode": "DEL"
+  },
+  "arrival": {
+    "iataCode": "BOM"
+  }
+}
 ```
 
-The normalized object can preserve provider-specific information such as:
+The application can convert this into a predictable internal structure:
 
-```text
-providerSource
-providerOfferId
-offerId
-searchId
-originalPrice
-originalCurrency
-expiresAt
-rawProviderPayload
+```json
+{
+  "origin": "DEL",
+  "destination": "BOM"
+}
 ```
 
-This allows the frontend and booking layer to work with a consistent model while retaining information required for provider-aware workflows.
+The same concept is applied to:
+
+* Airline information
+* Flight numbers
+* Departure times
+* Arrival times
+* Duration
+* Prices
+* Aircraft information
+
+This makes the frontend independent of the external provider's response format.
 
 ---
 
-# Real-Time Seat Availability
+# Real-Time Seat Synchronization
 
-Real-time seat availability is one of AVIATO's major engineering features.
-
-The backend uses the `ws` WebSocket library.
-
-WebSocket connections are accepted on:
+Seat availability is synchronized using WebSockets.
 
 ```text
-/ws
-/api/ws
+Client A
+   │
+   │ Seat Update
+   ▼
+WebSocket Server
+   │
+   ├──────────────► Client B
+   │
+   ├──────────────► Client C
+   │
+   └──────────────► Client D
 ```
 
-## Seat State
+When a seat becomes unavailable, connected clients can receive the update immediately.
 
-A seat can exist in states such as:
-
-```text
-available
-locked
-booked
-selected
-```
-
-The authoritative backend state distinguishes:
-
-* Permanently booked seats
-* Temporarily locked seats
-* The current user's own lock
-
-## Five-Minute Holds
-
-Seat locks use:
-
-```text
-5 minutes
-```
-
-The server periodically removes expired locks.
-
-When a lock expires, an availability update is broadcast to subscribed clients.
-
----
-
-# WebSocket Architecture
-
-```mermaid
-sequenceDiagram
-    participant A as Traveler A
-    participant WS as AVIATO WebSocket
-    participant S as Seat Service
-    participant B as Traveler B
-
-    A->>WS: SUBSCRIBE_FLIGHT
-    B->>WS: SUBSCRIBE_FLIGHT
-
-    WS->>S: Register subscribers
-    S-->>A: FLIGHT_SEATS_STATE
-    S-->>B: FLIGHT_SEATS_STATE
-
-    A->>WS: LOCK_SEAT(12A)
-    WS->>S: Validate seat
-    S->>S: Check DB + fallback bookings
-    S->>S: Check active locks
-
-    S-->>A: LOCK_RESULT
-    S-->>A: SEAT_UPDATED(locked, self)
-    S-->>B: SEAT_UPDATED(locked)
-
-    Note over S: Lock expires after 5 minutes
-
-    S-->>A: SEAT_UPDATED(available)
-    S-->>B: SEAT_UPDATED(available)
-```
-
-## Supported WebSocket Events
-
-### Client → Server
-
-```text
-SUBSCRIBE_FLIGHT
-UNSUBSCRIBE_FLIGHT
-LOCK_SEAT
-UNLOCK_SEAT
-PING
-```
-
-### Server → Client
-
-```text
-FLIGHT_SEATS_STATE
-LOCK_RESULT
-SEAT_UPDATED
-PONG
-```
-
-## Subscriber Management
-
-The server maintains:
-
-```text
-flightSubscribers
-```
-
-which maps each flight ID to its connected WebSocket clients.
-
-A client subscribes to a particular flight and receives state changes for that flight.
+This reduces the possibility of users viewing outdated seat information.
 
 ---
 
 # Seat Management
 
-Seat management is implemented in:
+The seat-management system tracks:
+
+* Available seats
+* Selected seats
+* Reserved seats
+* Seat status
+* User interactions
+
+The frontend displays a visual seat map.
+
+Typical seat states include:
 
 ```text
-server/utils/seats.ts
-server/services/realtimeSeats.ts
-server/routes/seats.ts
+Available
+Selected
+Occupied
 ```
 
-## Seat Generation
-
-AVIATO generates a full cabin layout with first, business, and economy sections.
-
-Seats are represented using identifiers such as:
+Example:
 
 ```text
-1A
-1B
-1C
-...
+A1  A2  A3  A4
+○   ○   X   ○
+
+B1  B2  B3  B4
+○   ●   ○   X
 ```
 
-## Seat Normalization
+Where:
 
-Seat identifiers are normalized before comparison.
-
-This prevents logically equivalent representations from being treated as different seats.
-
-## Booking Validation
-
-Before creating a reservation, the backend checks:
-
-1. The flight exists.
-2. The seat is valid.
-3. The seat is not already booked.
-4. The seat exists in the flight's availability list.
-5. Existing bookings are considered.
-6. Active fallback bookings are considered.
-
-## Concurrent Users
-
-Temporary seat locks are held in an in-memory map:
-
-```text
-flightId:seatId → SeatLock
-```
-
-A lock contains:
-
-```text
-flightId
-seatId
-sessionId
-lockedAt
-expiresAt
-```
-
-A user can hold one active seat for a flight; selecting another seat releases the previous lock.
-
-## Important Limitation
-
-The active lock map is process-local memory.
-
-For a horizontally scaled production deployment, these locks would need to move to shared infrastructure such as Redis or another distributed coordination mechanism.
+* `○` = Available
+* `●` = Selected
+* `X` = Occupied
 
 ---
 
 # Authentication
 
-Authentication is implemented using:
+AVIATO uses JWT-based authentication.
 
-* bcryptjs
-* JSON Web Tokens
-* Express middleware
+## Registration
 
-## Signup
+Users provide account information during registration.
 
-The signup endpoint:
+Passwords are hashed using `bcryptjs` before storage.
 
 ```text
-POST /api/auth/signup
+Password
+   │
+   ▼
+bcryptjs
+   │
+   ▼
+Password Hash
+   │
+   ▼
+Database
 ```
 
-creates a customer account and hashes the password before persistence.
-
-New accounts default to:
-
-```text
-CUSTOMER
-```
-
-## Login
-
-The login endpoint:
-
-```text
-POST /api/auth/login
-```
-
-validates the supplied password using bcrypt and returns an authenticated JWT payload.
-
-## JWT
-
-Protected requests use:
-
-```http
-Authorization: Bearer <token>
-```
-
-The JWT contains user identity information including:
-
-```text
-id
-email
-name
-role
-```
-
-## Session Persistence
-
-The frontend stores the token in:
-
-```text
-localStorage
-```
-
-and verifies it against:
-
-```text
-GET /api/auth/me
-```
-
-when the application loads.
-
-An invalid session clears the locally stored authentication state.
+The original password is never stored directly.
 
 ---
 
-# Authorization & Roles
+## Login
 
-AVIATO uses two application roles:
-
-| Role       | Description               |
-| ---------- | ------------------------- |
-| `CUSTOMER` | Standard traveler account |
-| `ADMIN`    | Administrative account    |
-
-The backend implements role authorization through:
+During login:
 
 ```text
-requireRole()
+Email + Password
+       │
+       ▼
+Find User
+       │
+       ▼
+Compare Password
+       │
+       ▼
+Generate JWT
+       │
+       ▼
+Authenticated Session
 ```
 
-For example:
+---
+
+# Authorization
+
+Authentication determines **who the user is**.
+
+Authorization determines **what the user is allowed to do**.
+
+AVIATO uses role-based authorization.
+
+Example:
 
 ```text
-authenticateJWT
-      ↓
-requireRole(["ADMIN"])
-      ↓
-Administrative endpoint
+USER
+ ├── Search Flights
+ ├── Create Booking
+ ├── View Own Bookings
+ └── Download Boarding Pass
+
+ADMIN
+ ├── View Users
+ ├── View Bookings
+ └── Administrative Operations
 ```
 
-Administrative operations include:
-
-* Dashboard statistics
-* User listing
-* User editing
-* User deletion
-* Aircraft creation
-* Aircraft editing
-* Aircraft deletion
-* Flight administration
-
-The server, rather than the frontend alone, enforces the role requirement.
+Protected API routes validate the user's authentication token and role where required.
 
 ---
 
 # Booking System
 
-The booking flow contains server-side validation instead of trusting the price and seat state supplied by the browser.
-
-## Booking Request
-
-The frontend sends information including:
+The booking workflow is:
 
 ```text
-flightId
-passengerName
-passengerEmail
-passportNumber
-seatId
-seatClass
-totalPrice
-```
-
-The backend then:
-
-1. Resolves the flight.
-2. Checks database availability.
-3. Checks provider-cached flight data.
-4. Checks fallback flight data.
-5. Normalizes the requested seat.
-6. Checks existing bookings.
-7. Checks seat availability.
-8. Removes the seat from available inventory.
-9. Calculates an authoritative price.
-10. Generates a booking number.
-11. Persists the booking.
-12. Confirms the seat in the real-time seat service.
-13. Optionally creates a Razorpay order.
-14. Sends confirmation email when appropriate.
-
-## Authoritative Pricing
-
-The backend does not blindly trust the frontend's displayed total.
-
-The server recalculates pricing based on the flight and seat characteristics.
-
-Seat-related pricing includes modifiers for cabin/seat categories and window seats.
-
-A first-time promotional discount can also be recognized when the supplied total corresponds to the expected discounted amount.
-
----
-
-# PNR / Booking Number
-
-AVIATO generates reservation references using the following format:
-
-```text
-AV-XXXXXX
-```
-
-For example:
-
-```text
-AV-104921
-```
-
-The generated value is stored as the booking's:
-
-```text
-bookingNo
-```
-
-and is used in reservation displays, confirmation emails, and boarding-pass documents.
-
-The current implementation uses random six-digit generation rather than an externally issued airline PNR service.
-
-Therefore these identifiers should be understood as **AVIATO demo booking references**, not airline-issued PNRs.
-
----
-
-# Email System
-
-AVIATO integrates directly with Resend through its HTTP API.
-
-Environment variables:
-
-```text
-EMAIL_API_KEY
-EMAIL_FROM
-```
-
-The email service sends booking-confirmation messages containing information such as:
-
-* Booking reference
-* Passenger name
-* Flight number
-* Airline
-* Route
-* Departure date
-* Departure time
-* Arrival time
-* Aircraft
-* Cabin class
-* Seat
-* Fare
-
-The service returns a success/failure result rather than causing the reservation itself to fail automatically.
-
-This means:
-
-```text
-Booking succeeds
+Select Flight
       │
-      ├── Email succeeds → Confirmation delivered
+      ▼
+Select Seats
       │
-      └── Email fails → Booking remains recorded
+      ▼
+Enter Passenger Information
+      │
+      ▼
+Validate Request
+      │
+      ▼
+Create Booking
+      │
+      ▼
+Generate PNR
+      │
+      ├────────────► Send Email
+      │
+      └────────────► Generate Boarding Pass
+      │
+      ▼
+Return Confirmation
 ```
 
----
+A booking contains information such as:
 
-# Digital Boarding Pass
-
-AVIATO provides a server-side boarding-pass endpoint:
-
-```text
-GET /api/bookings/:id/boarding-pass
-```
-
-The backend uses:
-
-```text
-PDFKit
-```
-
-to generate a PDF document.
-
-The generated document contains information including:
-
-* AVIATO branding
-* Demo environment indicator
+* User
+* Flight
 * Passenger
-* Airline
-* Flight number
-* Origin
-* Destination
-* Departure
-* Arrival
-* Date
-* Seat
-* Class
-* Booking reference
-* Flight duration
-* Stop information
-
-The document explicitly states that it is a demonstration boarding pass and not an airline ticket.
-
-The frontend also contains a fallback HTML e-ticket generator if the server PDF endpoint is unavailable.
-
----
-
-# Customer Dashboard
-
-The Travel Hub is the main authenticated traveler area.
-
-It provides access to:
-
-* Upcoming flights
-* Past flights
-* Booking records
+* Seats
+* PNR
 * Booking status
-* Booking details
-* Profile
-* Profile editing
-* Quick flight search
-* Booking cancellation
-* Boarding-pass download
-
-Bookings are divided into upcoming and past reservations based on flight date.
+* Created timestamp
 
 ---
 
-# Admin System
+# PNR Generation
 
-The administrative interface is implemented through:
+Each confirmed booking receives a unique PNR.
 
-```text
-src/pages/AdminDashboardPage.tsx
-server/routes/admin.ts
-server/routes/aircraft.ts
-```
-
-## Dashboard Statistics
-
-The admin dashboard can expose statistics such as:
-
-* Total users
-* Total flights
-* Total bookings
-* Revenue
-* Booking trends
-
-## User Management
-
-Administrators can:
-
-* View users
-* Edit user details
-* Change roles
-* Update passport information
-* Delete users
-
-The backend prevents deletion of the sole remaining administrator account.
-
-## Aircraft Management
-
-Administrators can:
-
-* Create aircraft
-* Update aircraft specifications
-* Decommission aircraft
-
-Aircraft fields include:
-
-* Name
-* Model
-* Capacity
-* Range
-* Speed
-* Amenities
-* Interior image
-* Status
-
-Aircraft statuses represented by the schema include:
+Example:
 
 ```text
-ACTIVE
-MAINTENANCE
-STANDBY
+PNR: AVT7K29X
 ```
+
+The PNR is associated with the booking and can be displayed in the user's dashboard and confirmation email.
 
 ---
 
-# Database Architecture
+# Email Confirmation
 
-AVIATO uses:
+Resend is used for transactional email delivery.
 
-```text
-PostgreSQL
-      ↑
-Prisma ORM
-      ↑
-Express Services / Routes
-```
-
-The Prisma datasource is configured for PostgreSQL.
-
-The application also contains an in-memory fallback architecture for cases where the configured database is unavailable.
-
-## Database Health
-
-AVIATO performs a database connectivity check using Prisma.
-
-The application can expose database diagnostics through:
+The confirmation email can include:
 
 ```text
-GET /api/debug/db-status
+AVIATO Booking Confirmation
+
+Passenger: John Doe
+Flight: AV123
+Route: DEL → BOM
+Date: 10 Oct 2026
+Seat: 12A
+PNR: AVT7K29X
 ```
 
-The diagnostics report whether the database is currently available and can provide counts for:
+The email service is separated from the main booking logic so that email failures can be handled independently.
 
-* Flights
+---
+
+# Boarding Pass Generation
+
+PDFKit is used to generate boarding passes.
+
+The generated document can include:
+
+```text
+--------------------------------
+           AVIATO
+        BOARDING PASS
+--------------------------------
+
+Passenger: John Doe
+
+Flight:       AV123
+From:         DEL
+To:           BOM
+
+Date:         10 Oct 2026
+Seat:         12A
+
+PNR:          AVT7K29X
+
+--------------------------------
+```
+
+The boarding pass can be accessed from the booking interface.
+
+---
+
+# User Dashboard
+
+Authenticated users can access their booking history.
+
+The dashboard provides information such as:
+
+* Upcoming bookings
+* Previous bookings
+* Flight details
+* Passenger information
+* Seat information
+* PNR
+* Boarding pass
+
+---
+
+# Admin Dashboard
+
+The admin dashboard provides administrative visibility into application data.
+
+Depending on the configured role, administrators can view:
+
+* Users
 * Bookings
-* Aircraft
-* Airports
+* Booking details
+* Application information
+
+Administrative routes are protected using role-based authorization.
 
 ---
 
-# Database Models
+# Database Design
 
-The Prisma schema defines five primary models.
+Prisma is used as the ORM layer.
 
-## User
+PostgreSQL is used as the primary database.
 
-Purpose:
-
-Represents an AVIATO account.
-
-Important fields:
-
-| Field            | Purpose                |
-| ---------------- | ---------------------- |
-| `id`             | UUID identifier        |
-| `email`          | Unique account email   |
-| `password`       | Hashed password        |
-| `name`           | Traveler name          |
-| `passportNumber` | Optional passport/ID   |
-| `role`           | `CUSTOMER` or `ADMIN`  |
-| `createdAt`      | Creation timestamp     |
-| `updatedAt`      | Modification timestamp |
-
-Relationships:
+The database contains entities representing application concepts such as:
 
 ```text
-User 1 ─── * Booking
+User
+ │
+ └── Booking
+       │
+       ├── Passenger Information
+       ├── Flight Information
+       ├── Seats
+       └── PNR
 ```
 
----
-
-## Aircraft
-
-Purpose:
-
-Represents an aircraft in the AVIATO fleet.
-
-Important fields:
-
-| Field           | Purpose                     |
-| --------------- | --------------------------- |
-| `id`            | UUID                        |
-| `name`          | Aircraft name               |
-| `model`         | Aircraft model              |
-| `capacity`      | Passenger capacity          |
-| `range`         | Range in km                 |
-| `speed`         | Speed in km/h               |
-| `amenities`     | Stored amenities            |
-| `interiorImage` | Aircraft image              |
-| `status`        | Aircraft operational status |
-| `createdAt`     | Creation timestamp          |
-| `updatedAt`     | Modification timestamp      |
-
-Relationship:
+A simplified booking model conceptually contains:
 
 ```text
-Aircraft 1 ─── * Flight
+Booking
+├── id
+├── userId
+├── flightId
+├── passenger information
+├── seat information
+├── PNR
+├── status
+└── createdAt
 ```
+
+Prisma provides:
+
+* Schema definition
+* Type-safe database access
+* Migrations
+* Query abstraction
 
 ---
 
-## Airport
+# REST API
 
-Purpose:
-
-Represents a flight airport.
-
-Important fields:
-
-| Field       | Purpose                |
-| ----------- | ---------------------- |
-| `id`        | UUID                   |
-| `code`      | Unique airport code    |
-| `name`      | Airport name           |
-| `city`      | City                   |
-| `country`   | Country                |
-| `createdAt` | Creation timestamp     |
-| `updatedAt` | Modification timestamp |
-
-Relationships:
-
-```text
-Airport 1 ─── * Flight (departure)
-Airport 1 ─── * Flight (arrival)
-```
-
-The two relationships use separate Prisma relation names:
-
-```text
-DepartureAirport
-ArrivalAirport
-```
-
----
-
-## Flight
-
-Purpose:
-
-Represents a searchable/reservable flight.
-
-Important fields include:
-
-| Field                | Purpose                |
-| -------------------- | ---------------------- |
-| `id`                 | Flight identifier      |
-| `flightNo`           | Unique flight number   |
-| `airline`            | Airline name           |
-| `airlineCode`        | Airline code           |
-| `departureCity`      | Origin city            |
-| `arrivalCity`        | Destination city       |
-| `departureAirportId` | Origin airport         |
-| `arrivalAirportId`   | Destination airport    |
-| `departureTime`      | Departure              |
-| `arrivalTime`        | Arrival                |
-| `price`              | Base flight fare       |
-| `date`               | Flight date            |
-| `duration`           | Duration               |
-| `cabinClass`         | Cabin category         |
-| `stops`              | Number of stops        |
-| `aircraftId`         | Aircraft relationship  |
-| `availableSeats`     | Seat inventory         |
-| `createdAt`          | Creation timestamp     |
-| `updatedAt`          | Modification timestamp |
-
-Relationships:
-
-```text
-Flight * ─── 1 Airport
-Flight * ─── 1 Airport
-Flight * ─── 1 Aircraft
-Flight 1 ─── * Booking
-```
-
----
-
-## Booking
-
-Purpose:
-
-Represents a reservation.
-
-Important fields:
-
-| Field               | Purpose                         |
-| ------------------- | ------------------------------- |
-| `id`                | Booking identifier              |
-| `bookingNo`         | Unique AVIATO booking reference |
-| `flightId`          | Reserved flight                 |
-| `userId`            | Optional associated user        |
-| `passengerName`     | Passenger                       |
-| `passengerEmail`    | Passenger email                 |
-| `passportNumber`    | Passenger passport/ID           |
-| `seatId`            | Selected seat                   |
-| `seatClass`         | Cabin/seat class                |
-| `status`            | Booking state                   |
-| `totalPrice`        | Reservation total               |
-| `razorpayOrderId`   | Optional Razorpay order         |
-| `razorpayPaymentId` | Optional payment ID             |
-| `razorpaySignature` | Optional signature              |
-| `createdAt`         | Creation timestamp              |
-| `updatedAt`         | Modification timestamp          |
-
-Relationships:
-
-```text
-Booking * ─── 1 User
-Booking * ─── 1 Flight
-```
-
----
-
-# Database Relationships
-
-```mermaid
-erDiagram
-    USER ||--o{ BOOKING : makes
-    FLIGHT ||--o{ BOOKING : contains
-    AIRCRAFT ||--o{ FLIGHT : operates
-    AIRPORT ||--o{ FLIGHT : departure
-    AIRPORT ||--o{ FLIGHT : arrival
-
-    USER {
-        string id PK
-        string email UK
-        string password
-        string name
-        string passportNumber
-        string role
-        datetime createdAt
-        datetime updatedAt
-    }
-
-    AIRCRAFT {
-        string id PK
-        string name
-        string model
-        int capacity
-        int range
-        int speed
-        string amenities
-        string interiorImage
-        string status
-    }
-
-    AIRPORT {
-        string id PK
-        string code UK
-        string name
-        string city
-        string country
-    }
-
-    FLIGHT {
-        string id PK
-        string flightNo UK
-        string airline
-        string airlineCode
-        string departureCity
-        string arrivalCity
-        string departureAirportId FK
-        string arrivalAirportId FK
-        string aircraftId FK
-        string departureTime
-        string arrivalTime
-        float price
-        string date
-        string duration
-        int stops
-        string availableSeats
-    }
-
-    BOOKING {
-        string id PK
-        string bookingNo UK
-        string flightId FK
-        string userId FK
-        string passengerName
-        string passengerEmail
-        string passportNumber
-        string seatId
-        string seatClass
-        string status
-        float totalPrice
-        string razorpayOrderId
-        string razorpayPaymentId
-        string razorpaySignature
-    }
-```
-
----
-
-# API Architecture
-
-The application exposes both primary route modules and compatibility endpoints.
+The backend exposes REST endpoints for application functionality.
 
 ## Authentication
 
-| Method | Endpoint           | Auth   | Purpose        |
-| ------ | ------------------ | ------ | -------------- |
-| POST   | `/api/auth/signup` | Public | Register       |
-| POST   | `/api/auth/login`  | Public | Login          |
-| GET    | `/api/auth/me`     | JWT    | Current user   |
-| PUT    | `/api/auth/me`     | JWT    | Update profile |
+| Method | Endpoint             | Purpose                |
+| ------ | -------------------- | ---------------------- |
+| POST   | `/api/auth/register` | Register a user        |
+| POST   | `/api/auth/login`    | Authenticate a user    |
+| GET    | `/api/auth/me`       | Get authenticated user |
 
 ---
 
 ## Flights
 
-| Method | Endpoint                       | Auth   | Purpose                        |
-| ------ | ------------------------------ | ------ | ------------------------------ |
-| GET    | `/api/flights`                 | Public | List flights                   |
-| POST   | `/api/flights/search`          | Public | Search flights                 |
-| POST   | `/api/search`                  | Public | Compatibility search endpoint  |
-| GET    | `/api/flights/config`          | Public | Flight configuration           |
-| GET    | `/api/flights/health`          | Public | Provider-related health/config |
-| GET    | `/api/flights/provider-status` | Public | Provider status                |
-| GET    | `/api/flights/:id`             | Public | Flight details                 |
-| POST   | `/api/flights`                 | Admin  | Create flight                  |
-| PUT    | `/api/flights/:id`             | Admin  | Update flight                  |
-| DELETE | `/api/flights/:id`             | Admin  | Delete flight                  |
-
----
-
-## Seat Availability
-
-| Method | Endpoint                              | Auth   | Purpose            |
-| ------ | ------------------------------------- | ------ | ------------------ |
-| GET    | `/api/flights/:flightId/seats`        | Public | Current seat state |
-| POST   | `/api/flights/:flightId/seats/lock`   | Public | Hold seat          |
-| POST   | `/api/flights/:flightId/seats/unlock` | Public | Release hold       |
-
-The current seat-lock endpoints use a client-generated session identifier rather than JWT authentication.
+| Method | Endpoint              | Purpose                |
+| ------ | --------------------- | ---------------------- |
+| GET    | `/api/flights/search` | Search flights         |
+| GET    | `/api/flights/:id`    | Get flight information |
 
 ---
 
 ## Bookings
 
-| Method | Endpoint                          | Auth           | Purpose                 |
-| ------ | --------------------------------- | -------------- | ----------------------- |
-| POST   | `/api/book`                       | Token optional | Create reservation      |
-| POST   | `/api/book/verify`                | Token optional | Verify Razorpay payment |
-| GET    | `/api/bookings`                   | Token-aware    | Booking history         |
-| GET    | `/api/bookings/:id`               | Token-aware    | Booking details         |
-| POST   | `/api/bookings/:id/cancel`        | JWT            | Cancel booking          |
-| POST   | `/api/bookings/:id/rebook`        | JWT            | Rebook                  |
-| GET    | `/api/bookings/:id/boarding-pass` | Optional JWT   | PDF boarding pass       |
-
-The repository also contains a more fully authenticated booking router mounted at `/api/bookings`. The frontend's active purchase flow uses the compatibility `/api/book` endpoints in `server.ts`.
-
----
-
-## Aircraft
-
-| Method | Endpoint            | Auth   | Purpose               |
-| ------ | ------------------- | ------ | --------------------- |
-| GET    | `/api/aircraft`     | Public | List aircraft         |
-| GET    | `/api/aircraft/:id` | Public | Aircraft details      |
-| POST   | `/api/aircraft`     | Admin  | Create aircraft       |
-| PUT    | `/api/aircraft/:id` | Admin  | Update aircraft       |
-| DELETE | `/api/aircraft/:id` | Admin  | Decommission aircraft |
+| Method | Endpoint                          | Purpose                       |
+| ------ | --------------------------------- | ----------------------------- |
+| POST   | `/api/book`                       | Create a booking              |
+| GET    | `/api/bookings`                   | Get user bookings             |
+| GET    | `/api/bookings/:id`               | Get booking details           |
+| GET    | `/api/bookings/:id/boarding-pass` | Generate/access boarding pass |
 
 ---
 
 ## Admin
 
-| Method | Endpoint                     | Auth  | Purpose              |
-| ------ | ---------------------------- | ----- | -------------------- |
-| GET    | `/api/admin/dashboard-stats` | Admin | Dashboard statistics |
-| GET    | `/api/admin/users`           | Admin | List users           |
-| PUT    | `/api/admin/users/:id`       | Admin | Edit user            |
-| DELETE | `/api/admin/users/:id`       | Admin | Delete user          |
+Administrative endpoints provide access to protected management operations.
+
+All sensitive routes require appropriate authentication and authorization.
 
 ---
 
-## Diagnostics
+# WebSocket API
 
-| Method | Endpoint                          | Purpose                   |
-| ------ | --------------------------------- | ------------------------- |
-| GET    | `/health`                         | Server health             |
-| GET    | `/api/health`                     | API health                |
-| GET    | `/api/debug/db-status`            | Database diagnostics      |
-| GET    | `/api/flight-provider/status`     | Provider configuration    |
-| GET    | `/api/flight-provider/diagnostic` | LetsFG diagnostic request |
-| POST   | `/api/test-email`                 | Email testing endpoint    |
+WebSockets are used for real-time seat updates.
 
----
-
-# WebSocket Architecture
-
-WebSocket upgrades are handled by the same HTTP server used by Express.
-
-Supported paths:
+Conceptually:
 
 ```text
-/ws
-/api/ws
+Client
+   │
+   │ WebSocket Connection
+   ▼
+WebSocket Server
+   │
+   ├── Seat Selected
+   ├── Seat Released
+   └── Seat Reserved
 ```
 
-A client subscribes using:
-
-```json
-{
-  "type": "SUBSCRIBE_FLIGHT",
-  "flightId": "flight-id",
-  "sessionId": "session-id"
-}
-```
-
-A seat lock request uses:
-
-```json
-{
-  "type": "LOCK_SEAT",
-  "flightId": "flight-id",
-  "seatId": "12A",
-  "sessionId": "session-id"
-}
-```
-
-The service broadcasts state changes to clients subscribed to that flight.
+Clients connected to the relevant flight can receive seat-state changes without polling the REST API repeatedly.
 
 ---
 
 # Failure Handling
 
-AVIATO contains several resilience mechanisms.
+AVIATO is designed to handle failures at multiple levels.
 
-## LetsFG Failure
+## External API Failure
 
-The provider falls back to demo flights when:
-
-* API key is missing
-* Authentication fails
-* Account tier blocks the request
-* Rate limits are reached
-* Server errors occur
-* JSON is malformed
-* Network requests fail
-* Requests time out
-
-A valid zero-result response remains a zero-result response.
+If the external flight provider is unavailable, the application can use fallback/demo flight data where supported.
 
 ---
 
 ## Database Failure
 
-The application checks database availability.
-
-When PostgreSQL/Prisma is unavailable, several workflows use the in-memory fallback store.
-
-The fallback store contains:
-
-* Users
-* Flights
-* Bookings
-* Aircraft
-
-This allows the application to continue demonstrating the booking workflow without an active database connection.
-
-However, in-memory records are process-local and should not be treated as durable production persistence.
-
----
-
-## Authentication Failure
-
-Invalid or expired JWTs produce authentication failures on protected endpoints.
-
-The frontend also clears its stored session when `/api/auth/me` reports an invalid session.
-
----
-
-## Seat Conflict
-
-Seat availability is checked server-side.
-
-If a seat is already booked or held, the backend can return a conflict/error response instead of trusting the frontend selection.
+Database errors are caught and returned as appropriate API errors rather than exposing internal database details.
 
 ---
 
 ## Email Failure
 
-Email delivery is deliberately treated separately from booking persistence.
+Email delivery is treated separately from booking creation.
 
-A failed Resend request produces an email failure result but does not automatically roll back the booking.
+A temporary email failure should not unnecessarily invalidate an otherwise successful booking.
 
 ---
 
-## Payment Failure
+## WebSocket Failure
 
-Razorpay configuration is verified before the payment flow is enabled.
+If the WebSocket connection is interrupted, the client can continue using normal application functionality and reconnect when possible.
 
-If gateway verification fails, AVIATO can fall back to its non-Razorpay confirmation behavior.
+---
+
+## Invalid Requests
+
+Backend validation prevents malformed requests from reaching sensitive application logic.
 
 ---
 
 # Security
 
-The repository implements several security-related practices.
+Security considerations include:
 
-## Password Hashing
+### Password Hashing
 
-Passwords are hashed with:
+Passwords are hashed using `bcryptjs`.
 
-```text
-bcryptjs
-```
+### JWT Authentication
 
-before database persistence.
+Protected resources require valid authentication tokens.
 
-## JWT Authentication
+### Role-Based Authorization
 
-Protected APIs validate bearer tokens with:
+Administrative functionality is restricted based on user roles.
 
-```text
-jsonwebtoken
-```
+### Environment Variables
 
-## Role Authorization
+Sensitive credentials are stored through environment variables rather than committed directly into source code.
 
-Administrative routes require:
+### Input Validation
 
-```text
-authenticateJWT
-+
-requireRole(["ADMIN"])
-```
+API inputs are validated before processing.
 
-## Server-Side Provider Credentials
+### Error Handling
 
-LetsFG credentials are read from server environment variables.
+Internal implementation details should not be unnecessarily exposed through API responses.
 
-The API key is not intended to be exposed to browser code.
+### CORS
 
-## Environment Variables
-
-Sensitive configuration is intended to be stored in environment variables rather than committed source code.
-
-## Input Validation
-
-The backend validates important booking/search inputs including:
-
-* Required passenger data
-* Flight ID
-* Seat ID
-* Passenger count
-* Search date
-* Origin/destination
-* Role requirements
-
-## Logging
-
-The server contains request/response logging and masks selected sensitive request fields such as:
-
-```text
-password
-passportNumber
-```
-
-when logging request bodies.
+Cross-origin access is configured for the application environment.
 
 ---
 
-# Engineering Challenges Solved
+# Engineering Challenges
 
-## 1. External Flight Provider Abstraction
+## 1. External API Normalization
 
-### Problem
+Different external responses can have different structures.
 
-Frontend and booking logic should not depend directly on a provider-specific response format.
-
-### Approach
-
-AVIATO introduces:
-
-```text
-IFlightProvider
-```
-
-and provider implementations.
-
-### Implementation
-
-```text
-IFlightProvider
-    ├── RealFlightProvider
-    │       └── LetsFG
-    └── DemoFlightProvider
-```
-
-### Engineering Concept
-
-**Provider abstraction and dependency isolation.**
+A normalization layer was introduced to maintain a consistent internal representation.
 
 ---
 
-## 2. External API Failure Without Breaking Search
+## 2. Real-Time Seat Synchronization
 
-### Problem
+Multiple clients may interact with the same flight simultaneously.
 
-An external API can fail for reasons outside the application's control.
-
-### Approach
-
-The provider catches multiple categories of failure and switches to the demo provider.
-
-### Engineering Concept
-
-**Graceful degradation and fault tolerance.**
+WebSockets were introduced to distribute seat-state changes between connected clients.
 
 ---
 
-## 3. Real-Time Seat Synchronization
+## 3. Booking Consistency
 
-### Problem
+Seat selection and booking creation need to remain consistent with the current seat state.
 
-A seat that appears available to one client may be selected by another client.
-
-### Approach
-
-AVIATO combines:
-
-* WebSocket state broadcasting
-* Temporary seat locks
-* REST state queries
-* Server-side booking validation
-
-### Engineering Concept
-
-**Real-time distributed-state coordination.**
+Backend validation is therefore required instead of trusting only the frontend.
 
 ---
 
-## 4. Temporary Seat Holds
+## 4. Authentication
 
-### Problem
-
-A user needs time to complete the booking process without permanently blocking a seat.
-
-### Approach
-
-Locks expire after five minutes.
-
-### Engineering Concept
-
-**Time-based resource reservation.**
+The application needed secure user registration, login, password hashing, JWT handling, and protected routes.
 
 ---
 
-## 5. Server-Side Price Authority
+## 5. External Service Reliability
 
-### Problem
+Flight APIs and email providers can become unavailable.
 
-The browser cannot be trusted to determine the final booking amount.
-
-### Approach
-
-The backend recalculates the authoritative total based on the selected flight and seat.
-
-### Engineering Concept
-
-**Server-authoritative business logic.**
+Fallback mechanisms and isolated service handling help prevent one external dependency from breaking the entire application.
 
 ---
 
-## 6. Database Resilience
+## 6. PDF Generation
 
-### Problem
-
-A portfolio application should remain demonstrable when the configured database is unavailable.
-
-### Approach
-
-AVIATO maintains in-memory fallback collections.
-
-### Engineering Concept
-
-**Graceful degradation and persistence abstraction.**
-
----
-
-## 7. Provider Offer Identity
-
-### Problem
-
-External providers can assign their own search and offer identifiers.
-
-### Approach
-
-AVIATO caches:
-
-```text
-searchId
-offerId
-providerOfferId
-rawProviderPayload
-expiresAt
-```
-
-alongside normalized flight information.
-
-### Engineering Concept
-
-**External-resource identity preservation.**
-
----
-
-## 8. Payment Verification
-
-### Problem
-
-A client-side payment success message should not by itself be trusted.
-
-### Approach
-
-Razorpay responses are verified using a server-side HMAC signature.
-
-### Engineering Concept
-
-**Cryptographic payment verification.**
-
----
-
-## 9. Multi-Layer Ticket Generation
-
-### Problem
-
-Users need a downloadable reservation document even if the server PDF endpoint is temporarily unavailable.
-
-### Approach
-
-The frontend first requests the server PDF and can fall back to a generated HTML e-ticket.
-
-### Engineering Concept
-
-**Graceful document-generation fallback.**
+Generating a usable boarding pass required transforming booking information into a structured PDF document.
 
 ---
 
@@ -2081,334 +1099,207 @@ The frontend first requests the server PDF and can fall back to a generated HTML
 
 ## React + TypeScript
 
-Chosen to provide a typed component architecture for a multi-step booking UI.
-
-## Vite
-
-Used for fast development and production frontend bundling.
-
-## Express
-
-Provides a straightforward HTTP API layer while allowing the same Node process to host the frontend.
-
-## Prisma
-
-Provides typed database access and relational model definitions.
-
-## PostgreSQL
-
-Used as the primary relational persistence layer.
-
-## WebSockets
-
-Used because seat availability is inherently event-driven and benefits from server-pushed updates.
-
-## LetsFG
-
-Used as the external flight-provider integration.
-
-## Provider Abstraction
-
-Keeps external provider details isolated from the rest of the application.
-
-## In-Memory Fallback
-
-Allows the portfolio application to remain demonstrable when external dependencies are unavailable.
-
-## PDFKit
-
-Allows boarding-pass-style documents to be generated entirely server-side.
-
-## Resend
-
-Provides transactional email delivery through an HTTP API.
-
-## Razorpay
-
-Integrated conditionally for payment-order creation and signature verification.
+TypeScript provides static typing while React provides component-based UI development.
 
 ---
 
-# Tech Stack
+## Express
 
-| Technology       | Purpose                            |
-| ---------------- | ---------------------------------- |
-| React 19         | Frontend UI                        |
-| TypeScript       | Static typing                      |
-| Vite             | Frontend development/build tooling |
-| Tailwind CSS     | UI styling                         |
-| Node.js          | Backend runtime                    |
-| Express          | HTTP API server                    |
-| Prisma           | ORM/database access                |
-| PostgreSQL       | Relational database                |
-| WebSocket (`ws`) | Real-time seat synchronization     |
-| bcryptjs         | Password hashing                   |
-| jsonwebtoken     | JWT authentication                 |
-| LetsFG           | Flight search provider             |
-| Resend           | Transactional email                |
-| PDFKit           | Boarding-pass PDF generation       |
-| Razorpay SDK     | Conditional payment integration    |
-| Lucide React     | UI icons                           |
-| Motion           | Frontend animation                 |
-| Recharts         | Dashboard visualization            |
-| esbuild          | Backend production bundling        |
-| dotenv           | Environment configuration          |
+Express provides a lightweight framework for building the REST API.
+
+---
+
+## Prisma
+
+Prisma provides type-safe database access and simplifies interaction with PostgreSQL.
+
+---
+
+## PostgreSQL
+
+PostgreSQL provides persistent relational storage for users, bookings, and related application data.
+
+---
+
+## WebSockets
+
+WebSockets were selected because seat synchronization benefits from real-time bidirectional communication.
+
+---
+
+## JWT
+
+JWT provides a stateless authentication mechanism for API requests.
+
+---
+
+## Resend
+
+Resend provides transactional email delivery.
+
+---
+
+## PDFKit
+
+PDFKit allows boarding passes to be generated programmatically.
+
+---
+
+# Technology Stack
+
+## Frontend
+
+* React 19
+* TypeScript
+* Vite
+* Tailwind CSS
+* Lucide React
+* Motion
+* Recharts
+
+## Backend
+
+* Node.js
+* Express
+* TypeScript
+* WebSockets
+
+## Database
+
+* PostgreSQL
+* Prisma
+
+## Authentication
+
+* JWT
+* bcryptjs
+
+## External Services
+
+* LetsFG flight provider
+* Resend
+
+## Document Generation
+
+* PDFKit
+
+## Development Tools
+
+* dotenv
+* esbuild
+* npm/pnpm
 
 ---
 
 # Project Structure
 
-The repository currently follows this structure:
+A simplified project structure is:
 
 ```text
-aviato/
-├── assets/
-│   └── .aistudio/
+AVIATO/
 │
-├── prisma/
-│   ├── dev.db
-│   └── schema.prisma
-│
-├── scripts/
-│   └── verify-letsfg.ts
+├── client/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   └── ...
+│   │
+│   └── ...
 │
 ├── server/
-│   ├── middleware/
-│   │   ├── auth.ts
-│   │   └── bookingLogger.ts
-│   │
 │   ├── routes/
-│   │   ├── admin.ts
-│   │   ├── aircraft.ts
-│   │   ├── auth.ts
-│   │   ├── bookings.ts
-│   │   ├── flights.ts
-│   │   └── seats.ts
-│   │
 │   ├── services/
-│   │   ├── email.ts
-│   │   ├── realtimeSeats.ts
-│   │   └── flights/
-│   │       ├── flightAdapter.ts
-│   │       ├── index.ts
-│   │       ├── types.ts
-│   │       └── providers/
-│   │           ├── demoProvider.ts
-│   │           ├── letsfgProvider.ts
-│   │           └── realFlightProvider.ts
-│   │
+│   ├── middleware/
 │   ├── utils/
-│   │   ├── currency.ts
-│   │   ├── pricing.ts
-│   │   └── seats.ts
-│   │
-│   ├── db.ts
-│   ├── fallbackStore.ts
-│   └── seed.ts
+│   └── ...
 │
-├── src/
-│   ├── components/
-│   │   ├── AuthForm.tsx
-│   │   ├── BookingCard.tsx
-│   │   ├── BookingConfirmationView.tsx
-│   │   ├── BookingFlightSummary.tsx
-│   │   ├── BookingProgressBar.tsx
-│   │   ├── BookingReviewStep.tsx
-│   │   ├── DashboardCard.tsx
-│   │   ├── DiagnosticsConsole.tsx
-│   │   ├── FlightCard.tsx
-│   │   ├── Footer.tsx
-│   │   ├── Navbar.tsx
-│   │   ├── PassengerDetailsStep.tsx
-│   │   ├── SearchForm.tsx
-│   │   ├── SeatSelector.tsx
-│   │   └── Sidebar.tsx
-│   │
-│   ├── hooks/
-│   │   └── useRealtimeSeats.ts
-│   │
-│   ├── pages/
-│   │   ├── AdminDashboardPage.tsx
-│   │   ├── FlightDetailsPage.tsx
-│   │   ├── LandingPage.tsx
-│   │   ├── LoginPage.tsx
-│   │   ├── MyProfilePage.tsx
-│   │   ├── SearchResultsPage.tsx
-│   │   ├── SignupPage.tsx
-│   │   └── TravelHubPage.tsx
-│   │
-│   ├── utils/
-│   │   ├── apiInterceptor.ts
-│   │   ├── currency.ts
-│   │   ├── pricing.ts
-│   │   └── ticketDownload.ts
-│   │
-│   ├── App.tsx
-│   ├── data.ts
-│   ├── index.css
-│   ├── main.tsx
-│   └── types.ts
+├── prisma/
+│   ├── schema.prisma
+│   └── ...
 │
-├── .env.example
-├── .gitignore
-├── index.html
-├── metadata.json
+├── public/
+│
 ├── package.json
-├── package-lock.json
-├── bun.lock
-├── server.ts
-├── tsconfig.json
-├── vite.config.ts
+├── .env
 └── README.md
 ```
+
+The exact structure may vary depending on the current implementation.
 
 ---
 
 # Environment Variables
 
-The repository includes `.env.example`.
+Create a `.env` file containing the required configuration.
 
-## Required / Core Configuration
+Example:
 
-| Variable         | Purpose                      | Required for                   |
-| ---------------- | ---------------------------- | ------------------------------ |
-| `DATABASE_URL`   | PostgreSQL connection string | Persistent database            |
-| `JWT_SECRET`     | JWT signing secret           | Secure authentication          |
-| `LETSFG_API_KEY` | LetsFG authentication        | Live/sandbox provider requests |
-| `EMAIL_API_KEY`  | Resend API credential        | Email delivery                 |
-| `EMAIL_FROM`     | Sender identity              | Email delivery                 |
+```env
+DATABASE_URL=your_postgresql_connection_string
 
-## Payment Configuration
+JWT_SECRET=your_jwt_secret
 
-| Variable              | Purpose                |
-| --------------------- | ---------------------- |
-| `RAZORPAY_KEY_ID`     | Razorpay client key    |
-| `RAZORPAY_KEY_SECRET` | Razorpay server secret |
+LETSFG_API_KEY=your_flight_provider_key
 
-Both are required before AVIATO activates its Razorpay gateway path.
+RESEND_API_KEY=your_resend_api_key
 
-## Other Configuration
-
-| Variable         | Purpose                                                                 |
-| ---------------- | ----------------------------------------------------------------------- |
-| `GEMINI_API_KEY` | Present in the environment template for Gemini/API Studio configuration |
-| `APP_URL`        | Application hosting URL                                                 |
-
-The backend code also supports optional provider configuration through:
-
-```text
-FLIGHT_PROVIDER_MODE
-LETSFG_MODE
-LETSFG_BASE_URL
+PORT=5000
 ```
 
-These are used for selecting/configuring the flight provider but are not all present in the supplied `.env.example`.
-
-### Never commit secrets
-
-Do not place real values for:
-
-```text
-JWT_SECRET
-DATABASE_URL
-LETSFG_API_KEY
-EMAIL_API_KEY
-RAZORPAY_KEY_SECRET
-GEMINI_API_KEY
-```
-
-into Git.
+> Never commit actual credentials, API keys, JWT secrets, or database passwords to GitHub.
 
 ---
 
-# Local Setup
+# Installation & Setup
 
-## Prerequisites
-
-Install:
-
-* Node.js
-* npm
-* PostgreSQL
-
-The project uses npm scripts directly.
-
----
-
-## 1. Clone the repository
+## 1. Clone the Repository
 
 ```bash
-git clone https://github.com/ItsShreena/aviato.git
-cd aviato
+git clone <repository-url>
+cd AVIATO
 ```
 
 ---
 
-## 2. Install dependencies
+## 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
----
-
-## 3. Create environment configuration
-
-Copy the provided environment template:
+or:
 
 ```bash
-cp .env.example .env
-```
-
-On Windows, create `.env` manually if `cp` is unavailable.
-
-Then configure the required values.
-
-At minimum, for a persistent database-backed environment:
-
-```env
-DATABASE_URL="your-postgresql-connection-string"
-JWT_SECRET="your-long-random-secret"
-```
-
-For LetsFG:
-
-```env
-LETSFG_API_KEY="your-letsfg-key"
-```
-
-For Resend:
-
-```env
-EMAIL_API_KEY="your-resend-key"
-EMAIL_FROM="your-verified-sender"
-```
-
-For Razorpay testing:
-
-```env
-RAZORPAY_KEY_ID="your-test-key-id"
-RAZORPAY_KEY_SECRET="your-test-key-secret"
+pnpm install
 ```
 
 ---
 
-# Prisma Setup
+## 3. Configure Environment Variables
 
-The Prisma schema is located at:
+Create:
 
 ```text
-prisma/schema.prisma
+.env
 ```
 
-The schema expects PostgreSQL:
+and add the required configuration.
 
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+---
+
+## 4. Configure PostgreSQL
+
+Create a PostgreSQL database and configure:
+
+```env
+DATABASE_URL=your_postgresql_connection_string
 ```
+
+---
+
+## 5. Run Prisma
 
 Generate the Prisma client:
 
@@ -2416,580 +1307,293 @@ Generate the Prisma client:
 npx prisma generate
 ```
 
-For a development database where schema synchronization is appropriate:
+Run migrations if required:
 
 ```bash
-npx prisma db push
+npx prisma migrate dev
 ```
-
-The repository also contains:
-
-```text
-server/seed.ts
-```
-
-which clears and recreates seeded database records.
-
-Run it with:
-
-```bash
-npx tsx server/seed.ts
-```
-
-> **Warning:** The seed script deletes existing bookings, flights, aircraft, airports, and users before recreating the seed data. Do not run it against a database containing data you want to preserve.
 
 ---
 
-# Development Server
+## 6. Start the Application
 
-Start the application with:
+Use the project's configured development script.
+
+For example:
 
 ```bash
 npm run dev
-```
-
-The server runs on:
-
-```text
-http://localhost:3000
-```
-
-In development, Express mounts Vite in middleware mode.
-
-The same Node process therefore provides:
-
-```text
-React/Vite
-+
-Express API
-+
-WebSocket service
-```
-
----
-
-# Production Build
-
-Create the production build:
-
-```bash
-npm run build
-```
-
-The build performs:
-
-```text
-Vite frontend build
-+
-esbuild server bundle
-```
-
-The backend bundle is generated as:
-
-```text
-dist/server.cjs
-```
-
-Start the production server with:
-
-```bash
-npm start
-```
-
-In production, Express serves the compiled frontend from:
-
-```text
-/dist
 ```
 
 ---
 
 # Available Scripts
 
-The `package.json` currently defines:
-
-| Script  | Command                     | Purpose                      |
-| ------- | --------------------------- | ---------------------------- |
-| `dev`   | `tsx server.ts`             | Development server           |
-| `build` | `vite build && esbuild ...` | Build frontend + backend     |
-| `start` | `node dist/server.cjs`      | Start production bundle      |
-| `clean` | `rm -rf dist server.js`     | Remove generated build files |
-| `lint`  | `tsc --noEmit`              | TypeScript checking          |
-
-Additional project utilities can be run directly through `tsx`, including:
+Common scripts may include:
 
 ```bash
-npx tsx server/seed.ts
+npm run dev
+npm run build
+npm run start
+npm run typecheck
 ```
 
-and:
+Check `package.json` for the exact scripts available in the current version.
 
-```bash
-npx tsx scripts/verify-letsfg.ts
+---
+
+# Testing
+
+Testing focuses on validating the major application workflows.
+
+## Authentication Test
+
+```text
+Register
+   ↓
+Login
+   ↓
+Receive JWT
+   ↓
+Access Protected Route
 ```
 
 ---
 
-# Testing / Verification
-
-The repository does not contain a dedicated automated test suite.
-
-Verification is primarily performed through application workflows and diagnostic endpoints.
-
-## Health Check
-
-```bash
-GET /health
-```
-
-or:
-
-```bash
-GET /api/health
-```
-
-Expected response includes a healthy server status.
-
----
-
-## Database Verification
-
-Use:
+## Flight Search Test
 
 ```text
-GET /api/debug/db-status
-```
-
-This reports database availability and, when online, database record counts.
-
----
-
-## LetsFG Verification
-
-The repository provides:
-
-```text
-scripts/verify-letsfg.ts
-```
-
-and a server diagnostic endpoint:
-
-```text
-GET /api/flight-provider/diagnostic
-```
-
-These can be used to verify the LetsFG configuration and sandbox response.
-
----
-
-## Booking Workflow
-
-A representative manual verification sequence is:
-
-```text
-1. Start the application
-2. Sign up or log in
-3. Search for a route
-4. Open a flight
-5. Select a seat
-6. Enter passenger information
-7. Review booking
-8. Submit booking
-9. Verify payment flow if Razorpay is configured
-10. Verify confirmation view
-11. Verify booking appears in Travel Hub
-12. Test booking cancellation
-13. Download boarding pass
-14. Check confirmation email when Resend is configured
+Enter Search Parameters
+        ↓
+Call Flight API
+        ↓
+Normalize Response
+        ↓
+Display Results
 ```
 
 ---
 
-## Real-Time Seat Testing
-
-Open the same flight in two browser sessions.
-
-Then:
+## Booking Test
 
 ```text
-Browser A
-    ↓
-Select Seat 12A
-    ↓
-Seat becomes locked
-
-Browser B
-    ↓
-Receives SEAT_UPDATED
-    ↓
-Seat 12A becomes unavailable
+Select Flight
+      ↓
+Select Seat
+      ↓
+Enter Passenger Details
+      ↓
+Confirm Booking
+      ↓
+Generate PNR
+      ↓
+Generate Boarding Pass
 ```
 
-This verifies the WebSocket broadcasting mechanism.
+---
+
+## Real-Time Test
+
+Open the same flight in multiple browser sessions and verify that seat-state changes are propagated between connected clients.
 
 ---
 
 # Current Project Status
 
-| Feature                                  | Status                              |
-| ---------------------------------------- | ----------------------------------- |
-| React frontend                           | ✅ Implemented                       |
-| TypeScript frontend                      | ✅ Implemented                       |
-| Express backend                          | ✅ Implemented                       |
-| PostgreSQL/Prisma schema                 | ✅ Implemented                       |
-| Database fallback store                  | 🧪 Demo/Resilience                  |
-| JWT authentication                       | ✅ Implemented                       |
-| bcrypt password hashing                  | ✅ Implemented                       |
-| Customer/Admin roles                     | ✅ Implemented                       |
-| Flight search API                        | ✅ Implemented                       |
-| LetsFG integration                       | 🧪 Sandbox/Test integration         |
-| Demo flight provider                     | 🧪 Implemented fallback/demo        |
-| Flight normalization                     | ✅ Implemented                       |
-| Provider offer caching                   | ✅ Implemented                       |
-| Seat generation                          | ✅ Implemented                       |
-| REST seat availability                   | ✅ Implemented                       |
-| WebSocket seat synchronization           | ✅ Implemented                       |
-| Five-minute seat holds                   | ✅ Implemented                       |
-| Server-side seat validation              | ✅ Implemented                       |
-| Booking persistence                      | ✅ Implemented                       |
-| In-memory booking fallback               | 🧪 Demo/Resilience                  |
-| PNR-style booking references             | 🧪 AVIATO-generated demo references |
-| Resend email integration                 | 🧪 External integration             |
-| PDF boarding pass                        | 🧪 Demo/simulation document         |
-| HTML ticket fallback                     | 🧪 Demo/simulation document         |
-| Razorpay order creation                  | 🧪 Conditional/Test integration     |
-| Razorpay signature verification          | 🧪 Conditional/Test integration     |
-| Customer Travel Hub                      | ✅ Implemented                       |
-| Booking cancellation                     | ✅ Implemented                       |
-| Booking rebooking                        | ✅ Implemented                       |
-| Admin dashboard                          | ✅ Implemented                       |
-| Admin user management                    | ✅ Implemented                       |
-| Admin aircraft management                | ✅ Implemented                       |
-| Production airline ticket issuance       | 🔜 Not implemented                  |
-| Production airline reservation/ticketing | 🔜 Not implemented                  |
-| Distributed seat-lock infrastructure     | 🔜 Future                           |
-| Automated test suite                     | 🔜 Future                           |
-
----
-
-# Payment Architecture
-
-Razorpay is present in the codebase and is not merely an unused dependency.
-
-AVIATO performs an active gateway configuration check using:
-
-```text
-RAZORPAY_KEY_ID
-RAZORPAY_KEY_SECRET
-```
-
-The server attempts to create a small probe order to determine whether the gateway credentials are usable.
-
-When active:
-
-```mermaid
-sequenceDiagram
-    participant UI as React
-    participant API as AVIATO
-    participant RP as Razorpay
-
-    UI->>API: Create booking
-    API->>RP: Create order
-    RP-->>API: Order ID
-    API-->>UI: Razorpay order details
-    UI->>RP: Checkout
-    RP-->>UI: Payment response
-    UI->>API: Payment ID + signature
-    API->>API: HMAC verification
-    API-->>UI: Confirmed booking
-```
-
-The Prisma `Booking` model includes:
-
-```text
-razorpayOrderId
-razorpayPaymentId
-razorpaySignature
-```
-
-However, this should **not** be described as production payment infrastructure.
-
-The repository's environment configuration identifies the Razorpay credentials as test-mode keys, and the application contains fallback behavior when the gateway is unavailable.
+| Feature                   | Status        |
+| ------------------------- | ------------- |
+| React Frontend            | ✅ Implemented |
+| TypeScript                | ✅ Implemented |
+| Flight Search             | ✅ Implemented |
+| External Flight Provider  | ✅ Implemented |
+| Flight Data Normalization | ✅ Implemented |
+| Demo/Fallback Flight Data | ✅ Implemented |
+| Authentication            | ✅ Implemented |
+| JWT Authorization         | ✅ Implemented |
+| Role-Based Access         | ✅ Implemented |
+| Seat Selection            | ✅ Implemented |
+| Real-Time Seat Updates    | ✅ Implemented |
+| Booking Creation          | ✅ Implemented |
+| PNR Generation            | ✅ Implemented |
+| PostgreSQL Persistence    | ✅ Implemented |
+| Prisma ORM                | ✅ Implemented |
+| Email Confirmation        | ✅ Implemented |
+| PDF Boarding Pass         | ✅ Implemented |
+| User Dashboard            | ✅ Implemented |
+| Admin Dashboard           | ✅ Implemented |
+| WebSocket Communication   | ✅ Implemented |
 
 ---
 
 # Future Scope
 
-The existing architecture provides several natural extension points.
+Potential future improvements include:
 
-## Distributed Seat Locking
+* Advanced flight filtering
+* Airline-specific filtering
+* Multi-city booking
+* Multi-leg journeys
+* Improved seat-locking mechanisms
+* Booking cancellation
+* Refund workflow
+* More advanced admin analytics
+* Production-grade monitoring
+* Automated testing
+* CI/CD pipeline
+* Cloud deployment
+* Redis-based real-time coordination
+* Distributed WebSocket architecture
+* Payment gateway integration
+* Advanced notification systems
 
-Move:
-
-```text
-activeLocks
-flightSubscribers
-```
-
-from process-local memory to shared infrastructure such as Redis.
-
-This would allow multiple backend instances to coordinate seat state.
-
-## Production Flight Provider
-
-Replace or supplement the current sandbox integration with a production-authorized provider and implement provider-specific reservation/ticketing APIs.
-
-## Persistent Seat Inventory
-
-Move seat inventory from the current string-based `availableSeats` representation into a dedicated relational seat/inventory model.
-
-## Transactional Booking
-
-Wrap:
-
-```text
-seat validation
-+
-seat deduction
-+
-booking creation
-```
-
-inside a database transaction with appropriate concurrency controls.
-
-## Payment Webhooks
-
-Add server-to-server payment webhook processing instead of relying only on the browser-returned payment response.
-
-## Automated Tests
-
-Introduce:
-
-* Unit tests
-* API integration tests
-* Authentication tests
-* Seat concurrency tests
-* Provider adapter tests
-* Booking tests
-* Payment verification tests
-
-## Background Jobs
-
-Move non-critical work such as email delivery to a background queue.
-
-## Observability
-
-Add:
-
-* Structured logs
-* Metrics
-* Distributed tracing
-* Error monitoring
-* Provider latency tracking
-
-## Stronger Input Validation
-
-Introduce a dedicated schema-validation library for API request validation.
-
-## Production Session Strategy
-
-Move away from browser local storage for sensitive authentication state toward a more robust session architecture where appropriate.
+> Payment gateway integration is listed only as future scope and is **not part of the current implementation**.
 
 ---
 
-# Scalability
+# Scalability Considerations
 
-The current architecture is suitable for a portfolio/educational environment but several components would need redesign for large-scale deployment.
+The current application is designed with separation of responsibilities so that components can be replaced or scaled independently.
 
-## Current Architecture
+A future production architecture could look like:
 
 ```text
-Browser
-   ↓
-Single Node.js process
-   ├── Express
-   ├── WebSocket
-   ├── In-memory seat locks
-   └── In-memory fallback state
-          ↓
-      PostgreSQL
+                         Load Balancer
+                              │
+             ┌────────────────┼────────────────┐
+             │                │                │
+             ▼                ▼                ▼
+         API Server       API Server       API Server
+             │                │                │
+             └────────────────┼────────────────┘
+                              │
+                              ▼
+                         PostgreSQL
+                              │
+                    ┌─────────┴─────────┐
+                    │                   │
+                    ▼                   ▼
+                  Redis          Background Workers
+                    │                   │
+                    ▼                   ▼
+             WebSocket State       Email / Jobs
 ```
 
-## Scaled Architecture
+Possible production improvements include:
 
-A larger deployment could evolve toward:
-
-```mermaid
-flowchart TD
-    Users["Users"]
-    LB["Load Balancer"]
-    API1["AVIATO API Instance"]
-    API2["AVIATO API Instance"]
-    Redis["Redis / Shared Seat Locks"]
-    DB["PostgreSQL"]
-    Queue["Job Queue"]
-    Provider["Flight Provider"]
-    Email["Email Worker"]
-
-    Users --> LB
-    LB --> API1
-    LB --> API2
-
-    API1 --> Redis
-    API2 --> Redis
-
-    API1 --> DB
-    API2 --> DB
-
-    API1 --> Provider
-    API2 --> Provider
-
-    API1 --> Queue
-    API2 --> Queue
-    Queue --> Email
-```
-
-Important production changes would include:
-
-* Shared seat-lock storage
-* Distributed WebSocket coordination
-* Database transactions
-* Connection pooling
-* Background jobs
-* Provider caching
-* Rate limiting
+* Horizontal API scaling
+* Redis
+* Background job queues
+* Database connection pooling
+* CDN
+* Containerization
+* Kubernetes
 * Centralized logging
-* Horizontal scaling
-* Payment webhooks
-* Stronger idempotency guarantees
+* Monitoring
+* Automated deployment
 
 ---
 
 # Engineering Concepts Demonstrated
 
-AVIATO demonstrates practical engineering concepts across several areas.
+AVIATO demonstrates practical understanding of:
 
-## Frontend Engineering
+### Frontend Engineering
 
-* React component architecture
+* React components
+* React state
+* Hooks
+* Routing
 * TypeScript
-* Stateful multi-step workflows
-* API integration
-* Persistent authentication state
 * Responsive UI
-* Error states
-* Loading states
-* Client-side fallbacks
+* API integration
 
-## Backend Engineering
+### Backend Engineering
 
-* Express routing
-* Middleware
-* Service abstraction
-* Request validation
+* REST APIs
+* Express middleware
+* Authentication
+* Authorization
 * Error handling
-* Server-side business rules
-* API compatibility layers
+* Service abstraction
 
-## Database Engineering
+### Database Engineering
 
+* Relational databases
 * PostgreSQL
 * Prisma ORM
-* Relational modeling
-* Foreign keys
-* Indexes
-* Database health checks
-* Seed data
+* Database relationships
+* Migrations
 
-## Authentication
+### Networking
 
-* bcrypt password hashing
-* JWT
-* Bearer authentication
-* Session verification
-* Role authorization
-
-## Real-Time Systems
-
+* HTTP
+* REST
 * WebSockets
-* Subscriber management
-* Event broadcasting
-* Temporary resource locks
-* State synchronization
+* Client-server architecture
 
-## API Integration
+### Security
 
-* LetsFG
-* Resend
-* Razorpay
+* Password hashing
+* JWT
+* Role-based access
+* Environment variables
+* Protected routes
 
-## Resilience
+### Distributed-System Concepts
 
-* External API fallback
-* Database fallback
-* PDF fallback
-* Email failure isolation
-* Timeout handling
+* Real-time synchronization
+* External service dependencies
+* Failure handling
+* Service isolation
+* Scalability
 
-## Business Logic
+### Software Engineering
 
-* Flight pricing
-* Seat modifiers
-* Promotional discounts
-* Booking-number generation
-* Seat inventory management
-
-## Document Generation
-
-* PDFKit
-* Server-side PDF streaming
-* Client-side HTML ticket fallback
+* Modular architecture
+* Separation of concerns
+* API abstraction
+* Data normalization
+* Reusable components
+* Error handling
 
 ---
 
 # Screenshots
 
-No dedicated screenshot assets were found in the supplied repository.
-
-For a polished portfolio presentation, screenshots can be added later under a directory such as:
-
-```text
-docs/screenshots/
-```
+Add application screenshots here.
 
 Suggested screenshots:
 
 ```text
-docs/screenshots/
-├── landing-page.png
-├── flight-search.png
-├── flight-results.png
-├── seat-selection.png
-├── booking-review.png
-├── booking-confirmation.png
-├── travel-hub.png
-├── boarding-pass.png
-└── admin-dashboard.png
+Landing Page
+Flight Search
+Flight Results
+Seat Selection
+Passenger Details
+Booking Confirmation
+User Dashboard
+Admin Dashboard
+Boarding Pass
 ```
 
-These are **suggested future documentation assets**, not currently present project files.
+Example:
+
+```markdown
+![AVIATO Landing Page](./screenshots/home.png)
+```
 
 ---
 
 # Documentation
 
-The repository currently contains:
+Additional documentation can include:
 
-```text
-README.md
-scripts/verify-letsfg.ts
-.env.example
-prisma/schema.prisma
-```
-
-The original README supplied with the project was primarily an AI Studio starter README and did not document AVIATO's current architecture in detail.
-
-This README is intended to serve as the project's technical documentation.
+* API documentation
+* Database schema
+* Architecture diagrams
+* Setup instructions
+* Environment configuration
+* Deployment documentation
 
 ---
 
@@ -2997,89 +1601,42 @@ This README is intended to serve as the project's technical documentation.
 
 **Shreena Mani**
 
-GitHub: `ItsShreena`
+BTech Student | Full-Stack Developer | UI/UX Enthusiast
 
 ---
 
 # Repository
 
-GitHub repository:
-
-`https://github.com/ItsShreena/aviato`
+The complete source code and project documentation are available in the project repository.
 
 ---
 
 # Security Notice
 
-Never commit:
+Never commit sensitive information such as:
 
 ```text
 .env
+API Keys
+JWT Secrets
+Database Passwords
+Access Tokens
+Private Credentials
 ```
 
-or any file containing real:
+Use environment variables for all secrets.
 
-* PostgreSQL credentials
-* JWT secrets
-* LetsFG API keys
-* Resend API keys
-* Razorpay secrets
-* Gemini API keys
-* Other private credentials
-
-Use `.env.example` as a template instead.
-
-Before publishing the repository, also verify that development/demo credentials contained in source files are replaced or removed where appropriate.
+If credentials are accidentally committed, revoke and regenerate them immediately.
 
 ---
 
 # Disclaimer
 
-AVIATO is a **portfolio, educational, and simulation project** intended to demonstrate full-stack engineering concepts involved in flight reservation systems.
+AVIATO is an educational and portfolio project created to demonstrate full-stack software engineering concepts.
 
-It should **not** be represented as:
+It is **not an actual airline reservation platform** and does not guarantee real-world flight availability, pricing, booking, or ticket issuance.
 
-* A commercial airline
-* A licensed travel agency
-* A production airline reservation system
-* A real-world airline ticket issuer
-* A source of commercially valid PNRs
-* A production payment processor
-* A production-grade distributed reservation platform
+Flight information obtained from external services is used for demonstration purposes.
 
-Flight data may come from the **LetsFG Sandbox** when configured, or from AVIATO's **Demo Flight Provider** when the external provider is unavailable or demo mode is selected.
-
-Boarding passes generated by AVIATO are explicitly demonstration documents and are **not valid for airport boarding, airline travel, or commercial gate access**.
-
-Likewise, AVIATO-generated booking references such as:
-
-```text
-AV-123456
-```
-
-are application-level demonstration references rather than airline-issued PNRs.
-
-The project is designed to demonstrate the engineering behind:
-
-```text
-Flight Search
-      ↓
-External API Integration
-      ↓
-Data Normalization
-      ↓
-Real-Time Seat Management
-      ↓
-Authentication
-      ↓
-Booking
-      ↓
-Optional Payment Integration
-      ↓
-Email
-      ↓
-Digital Reservation Document
-```
-
-**AVIATO — Fly Smarter. Reach Faster.**
+Any future payment integration would be a separate feature and is not part of the current implementation.
 
